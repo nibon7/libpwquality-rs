@@ -1,0 +1,56 @@
+name: CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '00 04 * * *'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lints:
+    name: Lints
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        channel: [stable, nightly]
+        feature: [vendored, crack]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: ${{ matrix.channel }}
+        components: rustfmt, clippy
+        override: true
+
+    - if: matrix.feature == 'crack'
+      run:
+        sudo apt-get install -y cracklib-runtime libcrack2-dev
+
+    - name: Rustfmt
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
+
+    - name: Check
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --features=${{ matrix.feature }} --workspace --all-targets --examples --tests
+
+    - name: Clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: --features=${{ matrix.feature }} --workspace --all-targets --examples --tests -- -D warnings
+
+    - name: Test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --features=${{ matrix.feature }} --workspace --all-targets --examples

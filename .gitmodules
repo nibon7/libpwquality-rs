@@ -1,0 +1,3 @@
+[submodule "libpwquality-sys/libpwquality"]
+	path = libpwquality-sys/libpwquality
+	url = https://github.com/libpwquality/libpwquality

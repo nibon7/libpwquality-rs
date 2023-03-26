@@ -1,0 +1,28 @@
+[package]
+name = "libpwquality"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "libpwquality bindings for Rust"
+repository = "https://github.com/nibon7/libpwquality-rs"
+readme = "./README.md"
+categories = ["api-bindings"]
+keywords = [
+  "password",
+  "pwquality"
+]
+exclude = [
+  "tests/*"
+]
+
+[dependencies]
+libpwquality-sys = { path = "libpwquality-sys", version = "0.1.0", default-features = false }
+libc = "0.2"
+
+[dev-dependencies]
+serial_test = "1.0"
+
+[features]
+default = ["vendored"]
+vendored = ["libpwquality-sys/vendored"]
+crack = ["libpwquality-sys/crack"]
