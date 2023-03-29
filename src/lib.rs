@@ -150,6 +150,16 @@ impl PWQuality {
         debug_assert!(ret == 0);
     }
 
+    /// Get value of an integer setting.
+    pub fn get_int_value(&self, setting: Setting) -> i32 {
+        let mut value: i32 = 0;
+        let ret = unsafe { pwquality_get_int_value(self.pwq, setting as c_int, &mut value) };
+
+        debug_assert!(ret == 0);
+
+        value
+    }
+
     /// Set value of a string setting.
     pub fn set_str_value(&self, setting: Setting, value: &str) -> Result<()> {
         let value = CString::new(value).unwrap();
@@ -159,16 +169,6 @@ impl PWQuality {
             0 => Ok(()),
             _ => Err(Error::from_aux(ret, None)),
         }
-    }
-
-    /// Get value of an integer setting.
-    pub fn get_int_value(&self, setting: Setting) -> i32 {
-        let mut value: i32 = 0;
-        let ret = unsafe { pwquality_get_int_value(self.pwq, setting as c_int, &mut value) };
-
-        debug_assert!(ret == 0);
-
-        value
     }
 
     /// Get value of a string setting.
@@ -273,6 +273,243 @@ impl PWQuality {
         } else {
             Ok(ret)
         }
+    }
+
+    /// Set the number of characters in the new password that must not be present in the
+    /// old password.
+    /// The special value of 0 disables all checks of similarity of the new password with
+    /// the old password except the new password being exactly the same as the old one.
+    pub fn set_difok(&self, value: i32) {
+        self.set_int_value(Setting::DiffOk, value)
+    }
+
+    /// Get the number of characters in the new password that must not be present in the
+    /// old password.
+    pub fn get_difok(&self) -> i32 {
+        self.get_int_value(Setting::DiffOk)
+    }
+
+    /// Set the minimum acceptable size for the new password (plus one if credits are not
+    /// disabled which is the default).
+    /// Any number less than 6 will be replaced by 6.
+    pub fn set_min_length(&self, value: i32) {
+        self.set_int_value(Setting::MinLength, value)
+    }
+
+    /// Get the minimum acceptable size for the new password.
+    pub fn get_min_length(&self) -> i32 {
+        self.get_int_value(Setting::MinLength)
+    }
+
+    /// Set the maximum credit for having digits in the new password.
+    /// If less than 0 it is the minimum number of digits in the new password.
+    pub fn set_digit_credit(&self, value: i32) {
+        self.set_int_value(Setting::DigCredit, value)
+    }
+
+    /// Get the maximum credit for having digits in the new password.
+    pub fn get_digit_credit(&self) -> i32 {
+        self.get_int_value(Setting::DigCredit)
+    }
+
+    /// Set maximum credit for having uppercase characters in the new password.
+    /// If less than 0 it is the minimum number of uppercase characters in the new
+    /// password.
+    pub fn set_uppercase_credit(&self, value: i32) {
+        self.set_int_value(Setting::UpCredit, value)
+    }
+
+    /// Get the maximum credit for having uppercase characters in the new password.
+    pub fn get_uppercase_credit(&self) -> i32 {
+        self.get_int_value(Setting::UpCredit)
+    }
+
+    /// Set the maximum credit for having lowercase characters in the new password.
+    /// If less than 0 it is the minimum number of lowercase characters in the new
+    /// password.
+    pub fn set_lowercase_credit(&self, value: i32) {
+        self.set_int_value(Setting::LowCredit, value)
+    }
+
+    /// Get the maximum credit for having lowercase characters in the new password.
+    pub fn get_lowercase_credit(&self) -> i32 {
+        self.get_int_value(Setting::LowCredit)
+    }
+
+    /// Set the maximum credit for having other characters in the new password.
+    /// If less than 0 it is the minimum number of other characters in the new
+    /// password.
+    pub fn set_other_credit(&self, value: i32) {
+        self.set_int_value(Setting::OthCredit, value)
+    }
+
+    /// Get the maximum credit for having other characters in the new password.
+    pub fn get_other_credit(&self) -> i32 {
+        self.get_int_value(Setting::OthCredit)
+    }
+
+    /// Set the minimum number of required classes of characters for the new
+    /// password (digits, uppercase, lowercase, others).
+    pub fn set_min_class(&self, value: i32) {
+        self.set_int_value(Setting::MinClass, value)
+    }
+
+    /// Get the minimum number of required classes of characters for the new
+    /// password (digits, uppercase, lowercase, others).
+    pub fn get_min_class(&self) -> i32 {
+        self.get_int_value(Setting::MinClass)
+    }
+
+    /// Set the maximum number of allowed consecutive same characters in the new password.
+    /// The check is disabled if the value is 0.
+    pub fn set_max_repeat(&self, value: i32) {
+        self.set_int_value(Setting::MaxRepeat, value)
+    }
+
+    /// Get the maximum number of allowed consecutive same characters in the new password.
+    pub fn get_max_repeat(&self) -> i32 {
+        self.get_int_value(Setting::MaxRepeat)
+    }
+
+    /// Set the maximum length of monotonic character sequences in the new password.
+    /// Examples of such sequence are '12345' or 'fedcb'.
+    /// The check is disabled if the value is 0.
+    pub fn set_max_seqeunce(&self, value: i32) {
+        self.set_int_value(Setting::MaxSequence, value)
+    }
+
+    /// Get the maximum length of monotonic character sequences in the new password.
+    pub fn get_max_seqeunce(&self) -> i32 {
+        self.get_int_value(Setting::MaxSequence)
+    }
+
+    /// Set the maximum number of allowed consecutive characters of the same class in the
+    /// new password.
+    /// The check is disabled if the value is 0.
+    pub fn set_max_class_repeat(&self, value: i32) {
+        self.set_int_value(Setting::MaxClassRepeat, value)
+    }
+
+    /// Get the maximum number of allowed consecutive characters of the same class in the
+    /// new password.
+    pub fn get_max_class_repeat(&self) -> i32 {
+        self.get_int_value(Setting::MaxClassRepeat)
+    }
+
+    /// Set whether to check for the words from the passwd entry GECOS string of the user.
+    /// The check is enabled if the value is not 0.
+    pub fn set_gecos_check(&self, check: bool) {
+        self.set_int_value(Setting::GecosCheck, i32::from(check))
+    }
+
+    /// Get whether to check for the words from the passwd entry GECOS string of the user.
+    pub fn get_gecos_check(&self) -> bool {
+        self.get_int_value(Setting::GecosCheck) != 0
+    }
+
+    /// Set whether to check for the words from the cracklib dictionary.
+    /// The check is enabled if the value is not 0.
+    pub fn set_dict_check(&self, check: bool) {
+        self.set_int_value(Setting::DictCheck, i32::from(check))
+    }
+
+    /// Get whether to check for the words from the cracklib dictionary.
+    pub fn get_dict_check(&self) -> bool {
+        self.get_int_value(Setting::DictCheck) != 0
+    }
+
+    /// Set whether to check if it contains the user name in some form.
+    /// The check is enabled if the value is not 0.
+    pub fn set_user_check(&self, check: bool) {
+        self.set_int_value(Setting::UserCheck, i32::from(check))
+    }
+
+    /// Get whether to check if it contains the user name in some form.
+    pub fn get_user_check(&self) -> bool {
+        self.get_int_value(Setting::UserCheck) != 0
+    }
+
+    /// Set length of substrings from the username to check for in the password.
+    /// The check is enabled if the value is greater than 0 and usercheck is enabled.
+    pub fn set_user_substr(&self, value: i32) {
+        self.set_int_value(Setting::UserSubstr, value)
+    }
+
+    /// Get length of substrings from the username to check for in the password.
+    pub fn get_user_substr(&self) -> i32 {
+        self.get_int_value(Setting::UserSubstr)
+    }
+
+    /// Set whether the check is enforced by the PAM module and possibly other
+    /// applications.
+    pub fn set_enforcing(&self, enforced: bool) {
+        self.set_int_value(Setting::Enforcing, i32::from(enforced))
+    }
+
+    /// Get whether the check is enforced by the PAM module and possibly other
+    /// applications.
+    pub fn get_enforcing(&self) -> bool {
+        self.get_int_value(Setting::Enforcing) != 0
+    }
+
+    /// Set bad words.
+    pub fn set_bad_words<W>(&self, words: W) -> Result<()>
+    where
+        W: IntoIterator,
+        W::Item: ToString,
+    {
+        let s = words
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        self.set_str_value(Setting::BadWords, &s)
+    }
+
+    /// Get bad words.
+    pub fn get_bad_words(&self) -> Result<Vec<String>> {
+        self.get_str_value(Setting::BadWords)
+            .map(|s| s.split_whitespace().map(String::from).collect())
+    }
+    /// Set the path to the cracklib dictionaries.
+    pub fn set_dict_path(&self, path: &str) -> Result<()> {
+        self.set_str_value(Setting::DictPath, path)
+    }
+
+    /// Get the path to the cracklib dictionaries.
+    pub fn get_dict_path(&self) -> Result<String> {
+        self.get_str_value(Setting::DictPath)
+    }
+
+    /// Set the maximum times to prompt user before returning with error.
+    pub fn set_retry_times(&self, value: i32) {
+        self.set_int_value(Setting::RetryTimes, value)
+    }
+
+    /// Get the maximum times to prompt user before returning with error.
+    pub fn get_retry_times(&self) -> i32 {
+        self.get_int_value(Setting::RetryTimes)
+    }
+
+    /// Enable enforced pwquality checks on the root user password.
+    pub fn enable_enforce_root(&self) {
+        self.set_int_value(Setting::EnforceRoot, 1)
+    }
+
+    /// Return whether enforced pwquality checks on the root user password is enabled.
+    pub fn enforce_root_enabled(&self) -> bool {
+        self.get_int_value(Setting::EnforceRoot) != 0
+    }
+
+    /// Enable testing the password quality for local users only.
+    pub fn enable_local_users_only(&self) {
+        self.set_int_value(Setting::LocalUsers, 1)
+    }
+
+    /// Return whether testing password quality for local users only is enabled.
+    pub fn local_users_only_enabled(&self) -> bool {
+        self.get_int_value(Setting::LocalUsers) != 0
     }
 }
 
