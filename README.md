@@ -6,6 +6,19 @@
 [![docs.rs](https://img.shields.io/docsrs/libpwquality)](https://docs.rs/libpwquality)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/nibon7/libpwquality-rs/ci.yml)](https://github.com/nibon7/libpwquality-rs/actions/workflows/ci.yml?query=branch%3Amain)
 
+## Usage
+
+```sh
+cargo add libpwquality
+```
+
+If you need [cracklib](https://github.com/cracklib/cracklib) support, enable `crack` feature and install cracklib development library.
+
+```sh
+cargo add libpwquality --features crack
+sudo pacman -S cracklib
+```
+
 ## Examples
 
 ```rust

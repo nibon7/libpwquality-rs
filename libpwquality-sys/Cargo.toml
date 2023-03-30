@@ -21,6 +21,4 @@ path = "lib.rs"
 cc = "1.0"
 
 [features]
-default = [ "vendored"]
-vendored = []
 crack = []

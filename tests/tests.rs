@@ -16,17 +16,17 @@ mod tests {
         (Setting::MaxSequence, 10),
         (Setting::GecosCheck, 11),
         (Setting::DictCheck, 12),
-        // (Setting::UserCheck, 13),
-        // (Setting::UserSubstr, 14),
-        // (Setting::Enforcing, 15),
-        // (Setting::RetryTimes, 16),
-        // (Setting::EnforceRoot, 17),
-        // (Setting::LocalUsers, 18),
+        (Setting::UserCheck, 13),
+        (Setting::UserSubstr, 14),
+        (Setting::Enforcing, 15),
+        (Setting::RetryTimes, 16),
+        (Setting::EnforceRoot, 1),
+        (Setting::LocalUsers, 1),
     ];
 
     const SETTINGS_STR: &[(Setting, &str)] = &[
         (Setting::BadWords, "badpassword"),
-        #[cfg(all(feature = "vendored", feature = "crack"))]
+        #[cfg(feature = "crack")]
         (Setting::DictPath, "/path/to/dict"),
     ];
 

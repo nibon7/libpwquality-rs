@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         channel: [stable, nightly]
-        feature: [vendored, crack]
     steps:
     - uses: actions/checkout@v2
 
@@ -27,7 +26,7 @@ jobs:
         components: rustfmt, clippy
         override: true
 
-    - if: matrix.feature == 'crack'
+    - name: Install build dependencies
       run:
         sudo apt-get install -y cracklib-runtime libcrack2-dev
 
@@ -41,16 +40,16 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --features=${{ matrix.feature }} --workspace --all-targets --examples --tests
+        args:  --workspace --all-features --all-targets --examples --tests
 
     - name: Clippy
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args: --features=${{ matrix.feature }} --workspace --all-targets --examples --tests -- -D warnings
+        args:  --workspace --all-features --all-targets --examples --tests -- -D warnings
 
     - name: Test
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --features=${{ matrix.feature }} --workspace --all-targets --examples
+        args: --workspace --all-features --all-targets --examples
