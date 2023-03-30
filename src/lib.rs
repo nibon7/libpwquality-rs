@@ -144,13 +144,10 @@ impl PWQuality {
     }
 
     /// Set value of an integer setting.
-    pub fn set_int_value(&self, setting: Setting, value: i32) -> Result<()> {
+    pub fn set_int_value(&self, setting: Setting, value: i32) {
         let ret = unsafe { pwquality_set_int_value(self.pwq, setting as c_int, value) };
 
-        match ret {
-            0 => Ok(()),
-            _ => Err(Error::from_aux(ret, None)),
-        }
+        debug_assert!(ret == 0);
     }
 
     /// Set value of a string setting.
@@ -165,13 +162,13 @@ impl PWQuality {
     }
 
     /// Get value of an integer setting.
-    pub fn get_int_value(&self, setting: Setting) -> Result<i32> {
+    pub fn get_int_value(&self, setting: Setting) -> i32 {
         let mut value: i32 = 0;
         let ret = unsafe { pwquality_get_int_value(self.pwq, setting as c_int, &mut value) };
-        match ret {
-            0 => Ok(value),
-            _ => Err(Error::from_aux(ret, None)),
-        }
+
+        debug_assert!(ret == 0);
+
+        value
     }
 
     /// Get value of a string setting.

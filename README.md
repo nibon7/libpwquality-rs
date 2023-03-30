@@ -29,8 +29,8 @@ fn main() -> Result<(), Error> {
 
     pwq.read_default_config()?;
 
-    pwq.set_int_value(Setting::MinLength, 9)?;
-    let minlen = pwq.get_int_value(Setting::MinLength)?;
+    pwq.set_int_value(Setting::MinLength, 9);
+    let minlen = pwq.get_int_value(Setting::MinLength);
     println!("minlen={}", minlen);
 
     pwq.set_str_value(Setting::BadWords, "badpassword")?;
@@ -38,7 +38,7 @@ fn main() -> Result<(), Error> {
     println!("badwords=\"{}\"", badwords);
 
     pwq.set_option("maxrepeat=2")?;
-    let maxrepeat = pwq.get_int_value(Setting::MaxRepeat)?;
+    let maxrepeat = pwq.get_int_value(Setting::MaxRepeat);
     println!("maxrepeat={}", maxrepeat);
 
     let password = pwq.generate(32)?;

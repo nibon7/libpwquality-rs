@@ -53,7 +53,7 @@ mod tests {
 
             pwq.set_option(&option)?;
 
-            let value = pwq.get_int_value(key)?;
+            let value = pwq.get_int_value(key);
 
             assert_eq!(value, val);
         }
@@ -82,9 +82,9 @@ mod tests {
             let key = setting.0;
             let val = setting.1;
 
-            pwq.set_int_value(key, val)?;
+            pwq.set_int_value(key, val);
 
-            let value = pwq.get_int_value(key)?;
+            let value = pwq.get_int_value(key);
 
             assert_eq!(value, val);
         }
