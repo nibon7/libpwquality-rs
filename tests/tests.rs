@@ -1,34 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use libpwquality::{Error, PWQuality, Setting};
+    use libpwquality::{Error, PWQuality};
     use serial_test::serial;
-
-    const SETTINGS_INT: &[(Setting, i32)] = &[
-        (Setting::DiffOk, 1),
-        (Setting::MinLength, 6),
-        (Setting::DigCredit, 3),
-        (Setting::UpCredit, 4),
-        (Setting::LowCredit, 5),
-        (Setting::OthCredit, 6),
-        (Setting::MinClass, 4),
-        (Setting::MaxRepeat, 8),
-        (Setting::MaxClassRepeat, 9),
-        (Setting::MaxSequence, 10),
-        (Setting::GecosCheck, 11),
-        (Setting::DictCheck, 12),
-        (Setting::UserCheck, 13),
-        (Setting::UserSubstr, 14),
-        (Setting::Enforcing, 15),
-        (Setting::RetryTimes, 16),
-        (Setting::EnforceRoot, 1),
-        (Setting::LocalUsers, 1),
-    ];
-
-    const SETTINGS_STR: &[(Setting, &str)] = &[
-        (Setting::BadWords, "badpassword"),
-        #[cfg(feature = "crack")]
-        (Setting::DictPath, "/path/to/dict"),
-    ];
 
     #[test]
     #[serial]
@@ -37,76 +10,6 @@ mod tests {
         let ret = pwq.read_config("/invalid/path/pwquality.conf");
 
         assert!(ret.is_err());
-
-        Ok(())
-    }
-
-    #[test]
-    #[serial]
-    fn test_set_option() -> Result<(), Error> {
-        let pwq = PWQuality::new()?;
-
-        for setting in SETTINGS_INT {
-            let key = setting.0;
-            let val = setting.1;
-            let option = format!("{}={}", key.as_str(), val);
-
-            pwq.set_option(&option)?;
-
-            let value = pwq.get_int_value(key);
-
-            assert_eq!(value, val);
-        }
-
-        for setting in SETTINGS_STR {
-            let key = setting.0;
-            let val = setting.1;
-            let option = format!("{}={}", key.as_str(), val);
-
-            pwq.set_option(&option)?;
-
-            let value = pwq.get_str_value(key)?;
-
-            assert!(value.eq(val));
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    #[serial]
-    fn test_set_int_val() -> Result<(), Error> {
-        let pwq = PWQuality::new()?;
-
-        for setting in SETTINGS_INT {
-            let key = setting.0;
-            let val = setting.1;
-
-            pwq.set_int_value(key, val);
-
-            let value = pwq.get_int_value(key);
-
-            assert_eq!(value, val);
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    #[serial]
-    fn test_set_str_val() -> Result<(), Error> {
-        let pwq = PWQuality::new()?;
-
-        for setting in SETTINGS_STR {
-            let key = setting.0;
-            let val = setting.1;
-
-            pwq.set_str_value(key, val)?;
-
-            let value = pwq.get_str_value(key)?;
-
-            assert!(value.eq(val));
-        }
 
         Ok(())
     }
@@ -139,8 +42,8 @@ mod tests {
         let pwq = PWQuality::new()?;
 
         let value = 1;
-        pwq.set_difok(value);
-        assert_eq!(pwq.get_difok(), value);
+        pwq.set_min_diff(value);
+        assert_eq!(pwq.get_min_diff(), value);
 
         let value = 12;
         pwq.set_min_length(value);

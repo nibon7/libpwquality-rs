@@ -13,12 +13,12 @@ fn main() -> Result<(), Error> {
     let badwords = pwq.get_bad_words()?;
     println!("badwords={:?}", badwords);
 
-    pwq.set_option("maxrepeat=2")?;
+    pwq.set_max_repeat(2);
     let maxrepeat = pwq.get_max_repeat();
     println!("maxrepeat={}", maxrepeat);
 
     let password = pwq.generate(32)?;
-    println!("password={}", password);
+    println!("password={:?}", password);
 
     let score = pwq.check(&password, None, None)?;
     println!("score={}", score);

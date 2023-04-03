@@ -1,4 +1,28 @@
 //! libpwquality bindings for Rust
+//!
+//! ## Example
+//!
+//! ```
+//! use libpwquality::{Error, PWQuality};
+//!
+//! fn main() -> Result<(), Error> {
+//!     let pwq = PWQuality::new()?;
+//!
+//!     pwq.read_default_config()?;
+//!
+//!     pwq.set_min_length(9);
+//!
+//!     let password = pwq.generate(32)?;
+//!
+//!     println!("password={:?}", password);
+//!
+//!     let score = pwq.check(&password, None, None)?;
+//!
+//!     println!("score={}", score);
+//!
+//!     Ok(())
+//! }
+//! ```
 
 use libpwquality_sys::*;
 use std::os::raw::{c_char, c_int, c_void};
@@ -11,7 +35,7 @@ use std::{
 /// PWQuality Setting.
 #[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
-pub enum Setting {
+enum Setting {
     DiffOk = PWQ_SETTING_DIFF_OK as isize,
     MinLength = PWQ_SETTING_MIN_LENGTH as isize,
     DigCredit,
@@ -32,33 +56,6 @@ pub enum Setting {
     EnforceRoot,
     LocalUsers,
     UserSubstr,
-}
-
-impl Setting {
-    pub fn as_str(&self) -> &str {
-        match *self {
-            Self::DiffOk => "difok",
-            Self::MinLength => "minlen",
-            Self::DigCredit => "dcredit",
-            Self::UpCredit => "ucredit",
-            Self::LowCredit => "lcredit",
-            Self::OthCredit => "ocredit",
-            Self::MinClass => "minclass",
-            Self::MaxRepeat => "maxrepeat",
-            Self::DictPath => "dictpath",
-            Self::MaxClassRepeat => "maxclassrepeat",
-            Self::GecosCheck => "gecoscheck",
-            Self::BadWords => "badwords",
-            Self::MaxSequence => "maxsequence",
-            Self::DictCheck => "dictcheck",
-            Self::UserCheck => "usercheck",
-            Self::Enforcing => "enforcing",
-            Self::RetryTimes => "retry",
-            Self::EnforceRoot => "enforce_for_root",
-            Self::LocalUsers => "local_users_only",
-            Self::UserSubstr => "usersubstr",
-        }
-    }
 }
 
 /// PWQuality Error.
@@ -114,6 +111,7 @@ impl PWQuality {
         self.read_optional_config(Some(path))
     }
 
+    /// Parse the configuration file.
     fn read_optional_config<P: AsRef<Path>>(&self, path: Option<P>) -> Result<()> {
         let mut ptr_err = null_mut();
         let ret = match path {
@@ -132,26 +130,15 @@ impl PWQuality {
         }
     }
 
-    /// Useful for setting the options as configured on a pam module command line in form of `<opt>=<val>`.
-    pub fn set_option(&self, option: &str) -> Result<()> {
-        let c_option = CString::new(option).unwrap();
-        let ret = unsafe { pwquality_set_option(self.pwq, c_option.as_ptr()) };
-
-        match ret {
-            0 => Ok(()),
-            _ => Err(Error::from_aux(ret, None)),
-        }
-    }
-
     /// Set value of an integer setting.
-    pub fn set_int_value(&self, setting: Setting, value: i32) {
+    fn set_int_value(&self, setting: Setting, value: i32) {
         let ret = unsafe { pwquality_set_int_value(self.pwq, setting as c_int, value) };
 
         debug_assert!(ret == 0);
     }
 
     /// Get value of an integer setting.
-    pub fn get_int_value(&self, setting: Setting) -> i32 {
+    fn get_int_value(&self, setting: Setting) -> i32 {
         let mut value: i32 = 0;
         let ret = unsafe { pwquality_get_int_value(self.pwq, setting as c_int, &mut value) };
 
@@ -161,7 +148,7 @@ impl PWQuality {
     }
 
     /// Set value of a string setting.
-    pub fn set_str_value(&self, setting: Setting, value: &str) -> Result<()> {
+    fn set_str_value(&self, setting: Setting, value: &str) -> Result<()> {
         let value = CString::new(value).unwrap();
         let ret = unsafe { pwquality_set_str_value(self.pwq, setting as c_int, value.as_ptr()) };
 
@@ -172,8 +159,8 @@ impl PWQuality {
     }
 
     /// Get value of a string setting.
-    pub fn get_str_value(&self, setting: Setting) -> Result<String> {
-        let mut ptr: *const c_char = null_mut();
+    fn get_str_value(&self, setting: Setting) -> Result<String> {
+        let mut ptr: *const c_char = null();
 
         let ret = unsafe { pwquality_get_str_value(self.pwq, setting as c_int, &mut ptr) };
         match ret {
@@ -275,17 +262,17 @@ impl PWQuality {
         }
     }
 
-    /// Set the number of characters in the new password that must not be present in the
+    /// Set the minimum number of characters in the new password that must not be present in the
     /// old password.
     /// The special value of 0 disables all checks of similarity of the new password with
     /// the old password except the new password being exactly the same as the old one.
-    pub fn set_difok(&self, value: i32) {
+    pub fn set_min_diff(&self, value: i32) {
         self.set_int_value(Setting::DiffOk, value)
     }
 
-    /// Get the number of characters in the new password that must not be present in the
+    /// Get the minimum number of characters in the new password that must not be present in the
     /// old password.
-    pub fn get_difok(&self) -> i32 {
+    pub fn get_min_diff(&self) -> i32 {
         self.get_int_value(Setting::DiffOk)
     }
 
@@ -452,7 +439,7 @@ impl PWQuality {
         self.get_int_value(Setting::Enforcing) != 0
     }
 
-    /// Set bad words.
+    /// Set list of words more than 3 characters long that are forbidden.
     pub fn set_bad_words<W>(&self, words: W) -> Result<()>
     where
         W: IntoIterator,
@@ -467,7 +454,7 @@ impl PWQuality {
         self.set_str_value(Setting::BadWords, &s)
     }
 
-    /// Get bad words.
+    /// Get list of words more than 3 characters long that are forbidden.
     pub fn get_bad_words(&self) -> Result<Vec<String>> {
         self.get_str_value(Setting::BadWords)
             .map(|s| s.split_whitespace().map(String::from).collect())
