@@ -136,7 +136,7 @@ checksum = "99227334921fae1a979cf0bfdfcc6b3e5ce376ef57e16fb6fb3ea2ed6095f80c"
 
 [[package]]
 name = "libpwquality"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "libc",
  "libpwquality-sys",
