@@ -115,11 +115,11 @@ mod tests {
         pwq.set_retry_times(value);
         assert_eq!(pwq.get_retry_times(), value);
 
-        pwq.enable_enforce_root();
-        assert!(pwq.enforce_root_enabled());
+        pwq.set_enforce_for_root(true);
+        assert!(pwq.get_enforce_for_root());
 
-        pwq.enable_local_users_only();
-        assert!(pwq.local_users_only_enabled());
+        pwq.set_local_users_only(true);
+        assert!(pwq.get_local_users_only());
 
         Ok(())
     }

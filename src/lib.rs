@@ -299,7 +299,7 @@ impl PWQuality {
         self.get_int_value(Setting::DigCredit)
     }
 
-    /// Set maximum credit for having uppercase characters in the new password.
+    /// Set the maximum credit for having uppercase characters in the new password.
     /// If less than 0 it is the minimum number of uppercase characters in the new
     /// password.
     pub fn set_uppercase_credit(&self, value: i32) {
@@ -416,13 +416,13 @@ impl PWQuality {
         self.get_int_value(Setting::UserCheck) != 0
     }
 
-    /// Set length of substrings from the username to check for in the password.
+    /// Set the length of substrings from the username to check for in the password.
     /// The check is enabled if the value is greater than 0 and usercheck is enabled.
     pub fn set_user_substr(&self, value: i32) {
         self.set_int_value(Setting::UserSubstr, value)
     }
 
-    /// Get length of substrings from the username to check for in the password.
+    /// Get the length of substrings from the username to check for in the password.
     pub fn get_user_substr(&self) -> i32 {
         self.get_int_value(Setting::UserSubstr)
     }
@@ -439,7 +439,7 @@ impl PWQuality {
         self.get_int_value(Setting::Enforcing) != 0
     }
 
-    /// Set list of words more than 3 characters long that are forbidden.
+    /// Set the list of words more than 3 characters long that are forbidden.
     pub fn set_bad_words<W>(&self, words: W) -> Result<()>
     where
         W: IntoIterator,
@@ -454,7 +454,7 @@ impl PWQuality {
         self.set_str_value(Setting::BadWords, &s)
     }
 
-    /// Get list of words more than 3 characters long that are forbidden.
+    /// Get the list of words more than 3 characters long that are forbidden.
     pub fn get_bad_words(&self) -> Result<Vec<String>> {
         self.get_str_value(Setting::BadWords)
             .map(|s| s.split_whitespace().map(String::from).collect())
@@ -479,23 +479,25 @@ impl PWQuality {
         self.get_int_value(Setting::RetryTimes)
     }
 
-    /// Enable enforced pwquality checks on the root user password.
-    pub fn enable_enforce_root(&self) {
-        self.set_int_value(Setting::EnforceRoot, 1)
+    /// Set whether to enforce pwquality checks on the root user password.
+    pub fn set_enforce_for_root(&self, enforced: bool) {
+        self.set_int_value(Setting::EnforceRoot, i32::from(enforced))
     }
 
-    /// Return whether enforced pwquality checks on the root user password is enabled.
-    pub fn enforce_root_enabled(&self) -> bool {
+    /// Get whether to enforce pwquality checks on the root user password.
+    pub fn get_enforce_for_root(&self) -> bool {
         self.get_int_value(Setting::EnforceRoot) != 0
     }
 
-    /// Enable testing the password quality for local users only.
-    pub fn enable_local_users_only(&self) {
-        self.set_int_value(Setting::LocalUsers, 1)
+    /// Set whether to skip testing the password quality for users that are not present in the
+    /// /etc/passwd file.
+    pub fn set_local_users_only(&self, local_users_only: bool) {
+        self.set_int_value(Setting::LocalUsers, i32::from(local_users_only))
     }
 
-    /// Return whether testing password quality for local users only is enabled.
-    pub fn local_users_only_enabled(&self) -> bool {
+    /// Get whether to skip testing the password quality for users that are not present in the
+    /// /etc/passwd file.
+    pub fn get_local_users_only(&self) -> bool {
         self.get_int_value(Setting::LocalUsers) != 0
     }
 }
