@@ -3,14 +3,15 @@
 //! ## Example
 //!
 //! ```
-//! use libpwquality::{Error, PWQuality};
+//! use libpwquality::{PWQError, PWQuality};
 //!
-//! fn main() -> Result<(), Error> {
+//! fn main() -> Result<(), PWQError> {
 //!     let pwq = PWQuality::new()?;
 //!
-//!     pwq.read_default_config()?;
-//!
-//!     pwq.set_min_length(9);
+//!     pwq.read_default_config()?
+//!         .min_length(9)
+//!         .max_repeat(2)
+//!         .bad_words(["bad", "password"])?;
 //!
 //!     let password = pwq.generate(32)?;
 //!
@@ -60,9 +61,9 @@ enum Setting {
 
 /// PWQuality Error.
 #[derive(Debug)]
-pub struct Error(String);
+pub struct PWQError(String);
 
-impl Error {
+impl PWQError {
     fn from_aux(errorkind: i32, auxerror: Option<*mut c_void>) -> Self {
         let ret = match auxerror {
             Some(aux) => unsafe { pwquality_strerror(null_mut(), 0, errorkind, aux) },
@@ -76,13 +77,13 @@ impl Error {
     }
 }
 
-impl std::fmt::Display for Error {
+impl std::fmt::Display for PWQError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-type Result<T> = std::result::Result<T, Error>;
+type Result<T> = std::result::Result<T, PWQError>;
 
 /// `PWQuality` instance that holds the underlying `pwquality_settings_t`.
 pub struct PWQuality {
@@ -95,24 +96,24 @@ impl PWQuality {
         let pwq = unsafe { pwquality_default_settings() };
 
         if pwq.is_null() {
-            Err(Error::from_aux(PWQ_ERROR_MEM_ALLOC, None))
+            Err(PWQError::from_aux(PWQ_ERROR_MEM_ALLOC, None))
         } else {
             Ok(Self { pwq })
         }
     }
 
     /// Parse the default configuration file.
-    pub fn read_default_config(&self) -> Result<()> {
+    pub fn read_default_config(&self) -> Result<&Self> {
         self.read_optional_config::<&str>(None)
     }
 
     /// Parse the given configuration file.
-    pub fn read_config<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+    pub fn read_config<P: AsRef<Path>>(&self, path: P) -> Result<&Self> {
         self.read_optional_config(Some(path))
     }
 
     /// Parse the configuration file.
-    fn read_optional_config<P: AsRef<Path>>(&self, path: Option<P>) -> Result<()> {
+    fn read_optional_config<P: AsRef<Path>>(&self, path: Option<P>) -> Result<&Self> {
         let mut ptr_err = null_mut();
         let ret = match path {
             Some(path) => {
@@ -125,8 +126,8 @@ impl PWQuality {
         };
 
         match ret {
-            0 => Ok(()),
-            _ => Err(Error::from_aux(ret, Some(ptr_err))),
+            0 => Ok(self),
+            _ => Err(PWQError::from_aux(ret, Some(ptr_err))),
         }
     }
 
@@ -154,7 +155,7 @@ impl PWQuality {
 
         match ret {
             0 => Ok(()),
-            _ => Err(Error::from_aux(ret, None)),
+            _ => Err(PWQError::from_aux(ret, None)),
         }
     }
 
@@ -173,7 +174,7 @@ impl PWQuality {
 
                 Ok(s)
             }
-            _ => Err(Error::from_aux(ret, None)),
+            _ => Err(PWQError::from_aux(ret, None)),
         }
     }
 
@@ -195,7 +196,7 @@ impl PWQuality {
 
                 Ok(password)
             }
-            _ => Err(Error::from_aux(ret, None)),
+            _ => Err(PWQError::from_aux(ret, None)),
         }
     }
 
@@ -256,7 +257,7 @@ impl PWQuality {
         };
 
         if ret < 0 {
-            Err(Error::from_aux(ret, Some(ptr_err)))
+            Err(PWQError::from_aux(ret, Some(ptr_err)))
         } else {
             Ok(ret)
         }
@@ -264,10 +265,12 @@ impl PWQuality {
 
     /// Set the minimum number of characters in the new password that must not be present in the
     /// old password.
+    ///
     /// The special value of 0 disables all checks of similarity of the new password with
     /// the old password except the new password being exactly the same as the old one.
-    pub fn set_min_diff(&self, value: i32) {
-        self.set_int_value(Setting::DiffOk, value)
+    pub fn min_diff(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::DiffOk, value);
+        self
     }
 
     /// Get the minimum number of characters in the new password that must not be present in the
@@ -278,9 +281,11 @@ impl PWQuality {
 
     /// Set the minimum acceptable size for the new password (plus one if credits are not
     /// disabled which is the default).
+    ///
     /// Any number less than 6 will be replaced by 6.
-    pub fn set_min_length(&self, value: i32) {
-        self.set_int_value(Setting::MinLength, value)
+    pub fn min_length(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::MinLength, value);
+        self
     }
 
     /// Get the minimum acceptable size for the new password.
@@ -289,9 +294,11 @@ impl PWQuality {
     }
 
     /// Set the maximum credit for having digits in the new password.
+    ///
     /// If less than 0 it is the minimum number of digits in the new password.
-    pub fn set_digit_credit(&self, value: i32) {
-        self.set_int_value(Setting::DigCredit, value)
+    pub fn digit_credit(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::DigCredit, value);
+        self
     }
 
     /// Get the maximum credit for having digits in the new password.
@@ -300,10 +307,12 @@ impl PWQuality {
     }
 
     /// Set the maximum credit for having uppercase characters in the new password.
+    ///
     /// If less than 0 it is the minimum number of uppercase characters in the new
     /// password.
-    pub fn set_uppercase_credit(&self, value: i32) {
-        self.set_int_value(Setting::UpCredit, value)
+    pub fn uppercase_credit(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::UpCredit, value);
+        self
     }
 
     /// Get the maximum credit for having uppercase characters in the new password.
@@ -312,10 +321,12 @@ impl PWQuality {
     }
 
     /// Set the maximum credit for having lowercase characters in the new password.
+    ///
     /// If less than 0 it is the minimum number of lowercase characters in the new
     /// password.
-    pub fn set_lowercase_credit(&self, value: i32) {
-        self.set_int_value(Setting::LowCredit, value)
+    pub fn lowercase_credit(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::LowCredit, value);
+        self
     }
 
     /// Get the maximum credit for having lowercase characters in the new password.
@@ -324,10 +335,12 @@ impl PWQuality {
     }
 
     /// Set the maximum credit for having other characters in the new password.
+    ///
     /// If less than 0 it is the minimum number of other characters in the new
     /// password.
-    pub fn set_other_credit(&self, value: i32) {
-        self.set_int_value(Setting::OthCredit, value)
+    pub fn other_credit(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::OthCredit, value);
+        self
     }
 
     /// Get the maximum credit for having other characters in the new password.
@@ -337,8 +350,9 @@ impl PWQuality {
 
     /// Set the minimum number of required classes of characters for the new
     /// password (digits, uppercase, lowercase, others).
-    pub fn set_min_class(&self, value: i32) {
-        self.set_int_value(Setting::MinClass, value)
+    pub fn min_class(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::MinClass, value);
+        self
     }
 
     /// Get the minimum number of required classes of characters for the new
@@ -348,9 +362,11 @@ impl PWQuality {
     }
 
     /// Set the maximum number of allowed consecutive same characters in the new password.
+    ///
     /// The check is disabled if the value is 0.
-    pub fn set_max_repeat(&self, value: i32) {
-        self.set_int_value(Setting::MaxRepeat, value)
+    pub fn max_repeat(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::MaxRepeat, value);
+        self
     }
 
     /// Get the maximum number of allowed consecutive same characters in the new password.
@@ -359,22 +375,26 @@ impl PWQuality {
     }
 
     /// Set the maximum length of monotonic character sequences in the new password.
+    ///
     /// Examples of such sequence are '12345' or 'fedcb'.
     /// The check is disabled if the value is 0.
-    pub fn set_max_seqeunce(&self, value: i32) {
-        self.set_int_value(Setting::MaxSequence, value)
+    pub fn max_sequence(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::MaxSequence, value);
+        self
     }
 
     /// Get the maximum length of monotonic character sequences in the new password.
-    pub fn get_max_seqeunce(&self) -> i32 {
+    pub fn get_max_sequence(&self) -> i32 {
         self.get_int_value(Setting::MaxSequence)
     }
 
     /// Set the maximum number of allowed consecutive characters of the same class in the
     /// new password.
+    ///
     /// The check is disabled if the value is 0.
-    pub fn set_max_class_repeat(&self, value: i32) {
-        self.set_int_value(Setting::MaxClassRepeat, value)
+    pub fn max_class_repeat(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::MaxClassRepeat, value);
+        self
     }
 
     /// Get the maximum number of allowed consecutive characters of the same class in the
@@ -384,9 +404,11 @@ impl PWQuality {
     }
 
     /// Set whether to check for the words from the passwd entry GECOS string of the user.
+    ///
     /// The check is enabled if the value is not 0.
-    pub fn set_gecos_check(&self, check: bool) {
-        self.set_int_value(Setting::GecosCheck, i32::from(check))
+    pub fn gecos_check(&self, check: bool) -> &Self {
+        self.set_int_value(Setting::GecosCheck, i32::from(check));
+        self
     }
 
     /// Get whether to check for the words from the passwd entry GECOS string of the user.
@@ -395,9 +417,11 @@ impl PWQuality {
     }
 
     /// Set whether to check for the words from the cracklib dictionary.
+    ///
     /// The check is enabled if the value is not 0.
-    pub fn set_dict_check(&self, check: bool) {
-        self.set_int_value(Setting::DictCheck, i32::from(check))
+    pub fn dict_check(&self, check: bool) -> &Self {
+        self.set_int_value(Setting::DictCheck, i32::from(check));
+        self
     }
 
     /// Get whether to check for the words from the cracklib dictionary.
@@ -406,9 +430,11 @@ impl PWQuality {
     }
 
     /// Set whether to check if it contains the user name in some form.
+    ///
     /// The check is enabled if the value is not 0.
-    pub fn set_user_check(&self, check: bool) {
-        self.set_int_value(Setting::UserCheck, i32::from(check))
+    pub fn user_check(&self, check: bool) -> &Self {
+        self.set_int_value(Setting::UserCheck, i32::from(check));
+        self
     }
 
     /// Get whether to check if it contains the user name in some form.
@@ -417,9 +443,11 @@ impl PWQuality {
     }
 
     /// Set the length of substrings from the username to check for in the password.
+    ///
     /// The check is enabled if the value is greater than 0 and usercheck is enabled.
-    pub fn set_user_substr(&self, value: i32) {
-        self.set_int_value(Setting::UserSubstr, value)
+    pub fn user_substr(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::UserSubstr, value);
+        self
     }
 
     /// Get the length of substrings from the username to check for in the password.
@@ -429,8 +457,9 @@ impl PWQuality {
 
     /// Set whether the check is enforced by the PAM module and possibly other
     /// applications.
-    pub fn set_enforcing(&self, enforced: bool) {
-        self.set_int_value(Setting::Enforcing, i32::from(enforced))
+    pub fn enforcing(&self, enforced: bool) -> &Self {
+        self.set_int_value(Setting::Enforcing, i32::from(enforced));
+        self
     }
 
     /// Get whether the check is enforced by the PAM module and possibly other
@@ -440,7 +469,7 @@ impl PWQuality {
     }
 
     /// Set the list of words more than 3 characters long that are forbidden.
-    pub fn set_bad_words<W>(&self, words: W) -> Result<()>
+    pub fn bad_words<W>(&self, words: W) -> Result<&Self>
     where
         W: IntoIterator,
         W::Item: ToString,
@@ -451,7 +480,8 @@ impl PWQuality {
             .collect::<Vec<String>>()
             .join(" ");
 
-        self.set_str_value(Setting::BadWords, &s)
+        self.set_str_value(Setting::BadWords, &s)?;
+        Ok(self)
     }
 
     /// Get the list of words more than 3 characters long that are forbidden.
@@ -459,9 +489,11 @@ impl PWQuality {
         self.get_str_value(Setting::BadWords)
             .map(|s| s.split_whitespace().map(String::from).collect())
     }
+
     /// Set the path to the cracklib dictionaries.
-    pub fn set_dict_path(&self, path: &str) -> Result<()> {
-        self.set_str_value(Setting::DictPath, path)
+    pub fn dict_path(&self, path: &str) -> Result<&Self> {
+        self.set_str_value(Setting::DictPath, path)?;
+        Ok(self)
     }
 
     /// Get the path to the cracklib dictionaries.
@@ -470,8 +502,9 @@ impl PWQuality {
     }
 
     /// Set the maximum times to prompt user before returning with error.
-    pub fn set_retry_times(&self, value: i32) {
-        self.set_int_value(Setting::RetryTimes, value)
+    pub fn retry_times(&self, value: i32) -> &Self {
+        self.set_int_value(Setting::RetryTimes, value);
+        self
     }
 
     /// Get the maximum times to prompt user before returning with error.
@@ -480,8 +513,9 @@ impl PWQuality {
     }
 
     /// Set whether to enforce pwquality checks on the root user password.
-    pub fn set_enforce_for_root(&self, enforced: bool) {
-        self.set_int_value(Setting::EnforceRoot, i32::from(enforced))
+    pub fn enforce_for_root(&self, enforced: bool) -> &Self {
+        self.set_int_value(Setting::EnforceRoot, i32::from(enforced));
+        self
     }
 
     /// Get whether to enforce pwquality checks on the root user password.
@@ -491,8 +525,9 @@ impl PWQuality {
 
     /// Set whether to skip testing the password quality for users that are not present in the
     /// /etc/passwd file.
-    pub fn set_local_users_only(&self, local_users_only: bool) {
-        self.set_int_value(Setting::LocalUsers, i32::from(local_users_only))
+    pub fn local_users_only(&self, local_users_only: bool) -> &Self {
+        self.set_int_value(Setting::LocalUsers, i32::from(local_users_only));
+        self
     }
 
     /// Get whether to skip testing the password quality for users that are not present in the
