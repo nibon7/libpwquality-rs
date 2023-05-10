@@ -10,7 +10,7 @@ fn main() {
 
     if !PathBuf::from("libpwquality/src").exists() {
         Command::new("git")
-            .args(&["submodule", "update", "--init"])
+            .args(["submodule", "update", "--init"])
             .status()
             .expect("Failed to initialize libpwquality");
     }
