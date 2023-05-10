@@ -59,7 +59,7 @@ enum Setting {
     UserSubstr,
 }
 
-/// PWQuality Error.
+/// `PWQuality` Error.
 #[derive(Debug)]
 pub struct PWQError(String);
 
@@ -74,6 +74,13 @@ impl PWQError {
         let s = unsafe { CStr::from_ptr(ret).to_string_lossy().to_string() };
 
         Self(s)
+    }
+}
+
+impl std::error::Error for PWQError {
+    #[allow(deprecated)]
+    fn description(&self) -> &str {
+        &self.0
     }
 }
 
