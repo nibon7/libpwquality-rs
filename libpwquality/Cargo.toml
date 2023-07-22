@@ -20,7 +20,7 @@ libpwquality-sys = { path = "../libpwquality-sys", version = "0.2.0", default-fe
 libc = "0.2"
 
 [dev-dependencies]
-serial_test = "1.0"
+serial_test = { version = "1.0", default-features = false }
 
 [features]
 crack = ["libpwquality-sys/crack"]
