@@ -1,120 +1,262 @@
-use libpwquality::{PWQError, PWQuality};
+use libpwquality::PWQuality;
 use serial_test::serial;
 
 #[test]
 #[serial]
-fn test_read_config() -> Result<(), PWQError> {
-    let pwq = PWQuality::new()?;
+fn test_read_config() {
+    let pwq = PWQuality::new().unwrap();
+
     let ret = pwq.read_config("/invalid/path/pwquality.conf");
 
     assert!(ret.is_err());
-
-    Ok(())
 }
 
 #[test]
 #[serial]
-fn test_generate() -> Result<(), PWQError> {
-    let pwq = PWQuality::new()?;
-    let password = pwq.generate(32)?;
+fn test_generate() {
+    let pwq = PWQuality::new().unwrap();
+    let password = pwq.generate(32).unwrap();
 
     assert!(!password.is_empty());
-
-    Ok(())
 }
 
 #[test]
 #[serial]
-fn test_check() -> Result<(), PWQError> {
-    let pwq = PWQuality::new()?;
-    let score = pwq.check("p@s5w0rD!", None, None)?;
+fn test_check() {
+    let pwq = PWQuality::new().unwrap();
+    let score = pwq.check("p@s5w0rD!", None, None).unwrap();
 
     assert!(score >= 0);
-
-    Ok(())
 }
 
 #[test]
 #[serial]
-fn test_helper() -> Result<(), PWQError> {
-    let pwq = PWQuality::new()?;
+fn test_min_diff() {
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 1;
-    pwq.min_diff(value);
-    assert_eq!(pwq.get_min_diff(), value);
+    for value in 1..10 {
+        pwq.min_diff(value);
+        assert_eq!(pwq.get_min_diff(), value);
+    }
+}
 
-    let value = 12;
-    pwq.min_length(value);
-    assert_eq!(pwq.get_min_length(), value);
+#[test]
+#[serial]
+fn test_min_length() {
+    const PWQ_BASE_MIN_LENGTH: i32 = 6;
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 2;
-    pwq.digit_credit(value);
-    assert_eq!(pwq.get_digit_credit(), value);
+    for value in 1..PWQ_BASE_MIN_LENGTH {
+        pwq.min_length(value);
+        assert_eq!(pwq.get_min_length(), PWQ_BASE_MIN_LENGTH);
+    }
 
-    let value = 3;
-    pwq.uppercase_credit(value);
-    assert_eq!(pwq.get_uppercase_credit(), value);
+    for value in PWQ_BASE_MIN_LENGTH..10 {
+        pwq.min_length(value);
+        assert_eq!(pwq.get_min_length(), value);
+    }
+}
 
-    let value = 6;
-    pwq.lowercase_credit(value);
-    assert_eq!(pwq.get_lowercase_credit(), value);
+#[test]
+#[serial]
+fn test_digit_credit() {
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 5;
-    pwq.other_credit(value);
-    assert_eq!(pwq.get_other_credit(), value);
+    for value in 1..10 {
+        pwq.digit_credit(value);
+        assert_eq!(pwq.get_digit_credit(), value);
+    }
+}
 
-    let value = 4;
-    pwq.min_class(value);
-    assert_eq!(pwq.get_min_class(), value);
+#[test]
+#[serial]
+fn test_uppercase_credit() {
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 7;
-    pwq.max_repeat(value);
-    assert_eq!(pwq.get_max_repeat(), value);
+    for value in 1..10 {
+        pwq.uppercase_credit(value);
+        assert_eq!(pwq.get_uppercase_credit(), value);
+    }
+}
 
-    let value = 8;
-    pwq.max_sequence(value);
-    assert_eq!(pwq.get_max_sequence(), value);
+#[test]
+#[serial]
+fn test_lowercase_credit() {
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 9;
-    pwq.max_class_repeat(value);
-    assert_eq!(pwq.get_max_class_repeat(), value);
+    for value in 1..10 {
+        pwq.lowercase_credit(value);
+        assert_eq!(pwq.get_lowercase_credit(), value);
+    }
+}
 
-    pwq.gecos_check(true);
-    assert!(pwq.get_gecos_check());
+#[test]
+#[serial]
+fn test_other_credit() {
+    let pwq = PWQuality::new().unwrap();
 
-    pwq.dict_check(true);
-    assert!(pwq.get_dict_check());
+    for value in 1..10 {
+        pwq.other_credit(value);
+        assert_eq!(pwq.get_other_credit(), value);
+    }
+}
 
-    pwq.user_check(true);
-    assert!(pwq.get_user_check());
+#[test]
+#[serial]
+fn test_min_class() {
+    const PWQ_NUM_CLASSES: i32 = 4;
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 10;
-    pwq.user_substr(value);
-    assert_eq!(pwq.get_user_substr(), value);
+    for value in 1..=PWQ_NUM_CLASSES {
+        pwq.min_class(value);
+        assert_eq!(pwq.get_min_class(), value);
+    }
 
-    pwq.enforcing(true);
-    assert!(pwq.get_enforcing());
+    for value in PWQ_NUM_CLASSES..10 {
+        pwq.min_class(value);
+        assert_eq!(pwq.get_min_class(), PWQ_NUM_CLASSES);
+    }
+}
 
-    pwq.bad_words(["bad", "words"])?;
-    let value = pwq.get_bad_words()?;
+#[test]
+#[serial]
+fn test_max_repeat() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in 1..10 {
+        pwq.max_repeat(value);
+        assert_eq!(pwq.get_max_repeat(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_max_sequence() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in 1..10 {
+        pwq.max_sequence(value);
+        assert_eq!(pwq.get_max_sequence(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_max_class_repeat() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in 1..10 {
+        pwq.max_class_repeat(value);
+        assert_eq!(pwq.get_max_class_repeat(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_gecos_check() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in [true, false] {
+        pwq.gecos_check(value);
+        assert_eq!(pwq.get_gecos_check(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_dict_check() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in [true, false] {
+        pwq.dict_check(value);
+        assert_eq!(pwq.get_dict_check(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_user_check() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in [true, false] {
+        pwq.user_check(value);
+        assert_eq!(pwq.get_user_check(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_user_substr() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in 1..10 {
+        pwq.user_substr(value);
+        assert_eq!(pwq.get_user_substr(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_enforcing() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in [true, false] {
+        pwq.enforcing(value);
+        assert_eq!(pwq.get_enforcing(), value);
+    }
+}
+
+#[test]
+#[serial]
+fn test_bad_words() {
+    let pwq = PWQuality::new().unwrap();
+
+    pwq.bad_words(["bad", "words"]).unwrap();
+    let value = pwq.get_bad_words().unwrap();
     assert_eq!(value, vec!["bad".to_string(), "words".to_string()]);
+}
 
-    let path = "/path/to/dict";
-    pwq.dict_path(path)?;
+#[test]
+#[serial]
+fn test_dict_path() {
+    let pwq = PWQuality::new().unwrap();
 
-    let s = pwq.get_dict_path()?;
+    for path in ["/path/to/dict", "/path/to/dict2"] {
+        pwq.dict_path(path).unwrap();
+        let s = pwq.get_dict_path().unwrap();
+        assert!(s.eq(path));
+    }
+}
 
-    assert!(s.eq(path));
+#[test]
+#[serial]
+fn test_retry_times() {
+    let pwq = PWQuality::new().unwrap();
 
-    let value = 11;
-    pwq.retry_times(value);
-    assert_eq!(pwq.get_retry_times(), value);
+    for value in 1..10 {
+        pwq.retry_times(value);
+        assert_eq!(pwq.get_retry_times(), value);
+    }
+}
 
-    pwq.enforce_for_root(true);
-    assert!(pwq.get_enforce_for_root());
+#[test]
+#[serial]
+fn test_enforce_for_root() {
+    let pwq = PWQuality::new().unwrap();
 
-    pwq.local_users_only(true);
-    assert!(pwq.get_local_users_only());
+    for value in [true, false] {
+        pwq.enforce_for_root(value);
+        assert_eq!(pwq.get_enforce_for_root(), value);
+    }
+}
 
-    Ok(())
+#[test]
+#[serial]
+fn test_local_users_only() {
+    let pwq = PWQuality::new().unwrap();
+
+    for value in [true, false] {
+        pwq.local_users_only(value);
+        assert_eq!(pwq.get_local_users_only(), value);
+    }
 }
