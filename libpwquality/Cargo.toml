@@ -1,6 +1,6 @@
 [package]
 name = "libpwquality"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 license = "MIT"
 description = "libpwquality bindings for Rust"
@@ -17,6 +17,7 @@ exclude = [
 
 [package.metadata.docs.rs]
 features = ["vendored"]
+rustc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 libpwquality-sys = { path = "../libpwquality-sys", version = "0.3.0", default-features = false }
