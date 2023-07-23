@@ -71,6 +71,7 @@ name = "libpwquality-sys"
 version = "0.2.1"
 dependencies = [
  "cc",
+ "pkg-config",
 ]
 
 [[package]]
@@ -111,6 +112,12 @@ dependencies = [
  "smallvec",
  "windows-sys",
 ]
+
+[[package]]
+name = "pkg-config"
+version = "0.3.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
 
 [[package]]
 name = "proc-macro2"

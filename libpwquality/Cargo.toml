@@ -15,6 +15,9 @@ exclude = [
   "tests/*"
 ]
 
+[package.metadata.docs.rs]
+features = ["vendored"]
+
 [dependencies]
 libpwquality-sys = { path = "../libpwquality-sys", version = "0.2.0", default-features = false }
 libc = "0.2"
@@ -23,4 +26,4 @@ libc = "0.2"
 serial_test = { version = "1.0", default-features = false }
 
 [features]
-crack = ["libpwquality-sys/crack"]
+vendored = ["libpwquality-sys/vendored"]

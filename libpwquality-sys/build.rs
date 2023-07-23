@@ -1,22 +1,53 @@
 use cc::Build;
 use std::fs::File;
-use std::{path::PathBuf, process::Command};
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
-fn main() {
-    println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=libpwquality");
+fn default_dict_path() -> &'static str {
+    if Path::new("/var/cache/cracklib").exists() {
+        "/var/cache/cracklib/cracklib_dict"
+    } else {
+        "/usr/share/cracklib/pw_dict"
+    }
+}
 
-    let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-
-    if !PathBuf::from("libpwquality/src").exists() {
-        Command::new("git")
-            .args(["submodule", "update", "--init"])
-            .status()
-            .expect("Failed to initialize libpwquality");
+fn build_cracklib<P: AsRef<Path>>(out_dir: P) -> bool {
+    if cfg!(docsrs) {
+        return false;
     }
 
-    File::create(out_dir.join("config.h")).expect("Failed to create config.h");
+    println!("cargo:rerun-if-env-changed=DEFAULT_CRACKLIB_DICT");
 
+    let mut cfg = Build::new();
+    let files = ["fascist.c", "packlib.c", "rules.c", "stringlib.c"];
+    let mut dict_path =
+        std::env::var("DEFAULT_CRACKLIB_DICT").unwrap_or(default_dict_path().into());
+
+    let dict = PathBuf::from(&dict_path).with_extension("pwd");
+    if !dict.exists() {
+        panic!(
+            "{} doesn't exist, please install cracklib dictionaries",
+            dict.display()
+        );
+    }
+
+    dict_path.insert(0, '\"');
+    dict_path.push('\"');
+
+    cfg.files(files.map(|f| PathBuf::from("cracklib/src/lib").join(f)))
+        .include(&out_dir)
+        .include("cracklib/src/lib")
+        .define("HAVE_UNISTD_H", None)
+        .define("IN_CRACKLIB", None)
+        .define("DEFAULT_CRACKLIB_DICT", dict_path.as_str())
+        .warnings(false)
+        .out_dir(&out_dir)
+        .compile("crack");
+
+    true
+}
+
+fn build_pwquality<P: AsRef<Path>>(out_dir: P, enable_crack: bool) {
     let mut cfg = Build::new();
     let files = ["check.c", "error.c", "generate.c", "settings.c"];
 
@@ -28,12 +59,42 @@ fn main() {
         .warnings(false)
         .out_dir(&out_dir);
 
-    if cfg!(feature = "crack") {
-        cfg.define("HAVE_CRACK_H", None);
-        println!("cargo:rustc-link-lib=crack");
+    if enable_crack {
+        cfg.include("cracklib/src/lib").define("HAVE_CRACK_H", None);
     }
 
     cfg.compile("pwquality");
+}
 
-    println!("cargo:rustc-link-lib=pwquality");
+fn main() {
+    println!("cargo:rerun-if-changed=build.rs");
+
+    let vendored = std::env::var("CARGO_FEATURE_VENDORED").is_ok();
+
+    // Try to find system libpwquality
+    if !vendored
+        && pkg_config::Config::new()
+            .atleast_version("1.4.4")
+            .probe("pwquality")
+            .is_ok()
+    {
+        return;
+    }
+
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
+
+    File::create(out_dir.join("config.h")).expect("Failed to create config.h");
+
+    if ["libpwquality", "cracklib"]
+        .iter()
+        .any(|s| !PathBuf::from(s).join("src").exists())
+    {
+        Command::new("git")
+            .args(["submodule", "update", "--init", "--recursive"])
+            .status()
+            .expect("Failed to initialize libpwquality");
+    }
+
+    let enable_crack = build_cracklib(&out_dir);
+    build_pwquality(&out_dir, enable_crack);
 }

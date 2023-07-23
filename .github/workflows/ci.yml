@@ -25,7 +25,7 @@ jobs:
 
     - name: Install build dependencies
       run:
-        sudo apt-get install -y cracklib-runtime libcrack2-dev
+        sudo apt-get install -y cracklib-runtime
 
     - name: Rustfmt
       uses: actions-rs/cargo@v1
@@ -37,13 +37,13 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args:  --workspace --all-features --all-targets --examples --tests
+        args: --workspace --all-features --all-targets --examples --tests
 
     - name: Clippy
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args:  --workspace --all-features --all-targets --examples --tests -- -D warnings
+        args: --workspace --all-features --all-targets --examples --tests -- -D warnings
 
     - name: Test
       uses: actions-rs/cargo@v1

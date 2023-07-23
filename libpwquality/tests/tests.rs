@@ -99,15 +99,12 @@ fn test_helper() -> Result<(), PWQError> {
     let value = pwq.get_bad_words()?;
     assert_eq!(value, vec!["bad".to_string(), "words".to_string()]);
 
-    #[cfg(feature = "crack")]
-    {
-        let path = "/path/to/dict";
-        pwq.dict_path(path)?;
+    let path = "/path/to/dict";
+    pwq.dict_path(path)?;
 
-        let s = pwq.get_dict_path()?;
+    let s = pwq.get_dict_path()?;
 
-        assert!(s.eq(path));
-    }
+    assert!(s.eq(path));
 
     let value = 11;
     pwq.retry_times(value);
