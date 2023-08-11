@@ -5,7 +5,11 @@ use std::process::Command;
 
 fn default_dict_path() -> &'static str {
     if Path::new("/var/cache/cracklib").exists() {
+        // ubuntu
         "/var/cache/cracklib/cracklib_dict"
+    } else if Path::new("/usr/local/libdata/cracklib").exists() {
+        // freebsd
+        "/usr/local/libdata/cracklib/cracklib-words"
     } else {
         "/usr/share/cracklib/pw_dict"
     }
