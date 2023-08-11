@@ -1,11 +1,12 @@
 use libpwquality::PWQuality;
 use serial_test::serial;
 
+const MAX: i32 = 10;
+
 #[test]
 #[serial]
 fn test_read_config() {
     let pwq = PWQuality::new().unwrap();
-
     let ret = pwq.read_config("/invalid/path/pwquality.conf");
 
     assert!(ret.is_err());
@@ -34,7 +35,7 @@ fn test_check() {
 fn test_min_diff() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.min_diff(value);
         assert_eq!(pwq.get_min_diff(), value);
     }
@@ -51,7 +52,7 @@ fn test_min_length() {
         assert_eq!(pwq.get_min_length(), PWQ_BASE_MIN_LENGTH);
     }
 
-    for value in PWQ_BASE_MIN_LENGTH..10 {
+    for value in PWQ_BASE_MIN_LENGTH..MAX {
         pwq.min_length(value);
         assert_eq!(pwq.get_min_length(), value);
     }
@@ -62,7 +63,7 @@ fn test_min_length() {
 fn test_digit_credit() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.digit_credit(value);
         assert_eq!(pwq.get_digit_credit(), value);
     }
@@ -73,7 +74,7 @@ fn test_digit_credit() {
 fn test_uppercase_credit() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.uppercase_credit(value);
         assert_eq!(pwq.get_uppercase_credit(), value);
     }
@@ -84,7 +85,7 @@ fn test_uppercase_credit() {
 fn test_lowercase_credit() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.lowercase_credit(value);
         assert_eq!(pwq.get_lowercase_credit(), value);
     }
@@ -95,7 +96,7 @@ fn test_lowercase_credit() {
 fn test_other_credit() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.other_credit(value);
         assert_eq!(pwq.get_other_credit(), value);
     }
@@ -112,7 +113,7 @@ fn test_min_class() {
         assert_eq!(pwq.get_min_class(), value);
     }
 
-    for value in PWQ_NUM_CLASSES..10 {
+    for value in PWQ_NUM_CLASSES..MAX {
         pwq.min_class(value);
         assert_eq!(pwq.get_min_class(), PWQ_NUM_CLASSES);
     }
@@ -123,7 +124,7 @@ fn test_min_class() {
 fn test_max_repeat() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.max_repeat(value);
         assert_eq!(pwq.get_max_repeat(), value);
     }
@@ -134,7 +135,7 @@ fn test_max_repeat() {
 fn test_max_sequence() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.max_sequence(value);
         assert_eq!(pwq.get_max_sequence(), value);
     }
@@ -145,7 +146,7 @@ fn test_max_sequence() {
 fn test_max_class_repeat() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.max_class_repeat(value);
         assert_eq!(pwq.get_max_class_repeat(), value);
     }
@@ -189,7 +190,7 @@ fn test_user_check() {
 fn test_user_substr() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.user_substr(value);
         assert_eq!(pwq.get_user_substr(), value);
     }
@@ -233,7 +234,7 @@ fn test_dict_path() {
 fn test_retry_times() {
     let pwq = PWQuality::new().unwrap();
 
-    for value in 1..10 {
+    for value in 1..MAX {
         pwq.retry_times(value);
         assert_eq!(pwq.get_retry_times(), value);
     }
