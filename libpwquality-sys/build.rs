@@ -23,7 +23,7 @@ fn build_cracklib<P: AsRef<Path>>(out_dir: P) -> bool {
     let mut dict_path =
         std::env::var("DEFAULT_CRACKLIB_DICT").unwrap_or(default_dict_path().into());
 
-    let dict = PathBuf::from(&dict_path).with_extension("pwd");
+    let dict = Path::new(&dict_path).with_extension("pwd");
     if !dict.exists() {
         panic!(
             "{} doesn't exist, please install cracklib dictionaries",
@@ -34,7 +34,7 @@ fn build_cracklib<P: AsRef<Path>>(out_dir: P) -> bool {
     dict_path.insert(0, '\"');
     dict_path.push('\"');
 
-    cfg.files(files.map(|f| PathBuf::from("cracklib/src/lib").join(f)))
+    cfg.files(files.map(|f| Path::new("cracklib/src/lib").join(f)))
         .include(&out_dir)
         .include("cracklib/src/lib")
         .define("HAVE_UNISTD_H", None)
@@ -51,7 +51,7 @@ fn build_pwquality<P: AsRef<Path>>(out_dir: P, enable_crack: bool) {
     let mut cfg = Build::new();
     let files = ["check.c", "error.c", "generate.c", "settings.c"];
 
-    cfg.files(files.map(|f| PathBuf::from("libpwquality/src").join(f)))
+    cfg.files(files.map(|f| Path::new("libpwquality/src").join(f)))
         .include(&out_dir)
         .include("libpwquality/src")
         .define("_(msgid)", "(msgid)")
@@ -87,7 +87,7 @@ fn main() {
 
     if ["libpwquality", "cracklib"]
         .iter()
-        .any(|s| !PathBuf::from(s).join("src").exists())
+        .any(|s| !Path::new(s).join("src").exists())
     {
         Command::new("git")
             .args(["submodule", "update", "--init", "--recursive"])
