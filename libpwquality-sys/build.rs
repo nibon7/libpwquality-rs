@@ -4,15 +4,19 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn default_dict_path() -> &'static str {
-    if Path::new("/var/cache/cracklib").exists() {
+    [
         // ubuntu
-        "/var/cache/cracklib/cracklib_dict"
-    } else if Path::new("/usr/local/libdata/cracklib").exists() {
+        "/var/cache/cracklib/cracklib_dict",
+        // gentoo
+        "/usr/lib/cracklib_dict",
         // freebsd
-        "/usr/local/libdata/cracklib/cracklib-words"
-    } else {
-        "/usr/share/cracklib/pw_dict"
-    }
+        "/usr/local/libdata/cracklib/cracklib-words",
+        // default
+        "/usr/share/cracklib/pw_dict",
+    ]
+    .iter()
+    .find(|s| Path::new(s).with_extension("pwd").exists())
+    .expect("cracklib dictionaries not found, please install cracklib dictionaries or set DEFAULT_CRACKLIB_DICT environment")
 }
 
 fn build_cracklib<P: AsRef<Path>>(out_dir: P) -> bool {
@@ -27,16 +31,8 @@ fn build_cracklib<P: AsRef<Path>>(out_dir: P) -> bool {
     let mut dict_path =
         std::env::var("DEFAULT_CRACKLIB_DICT").unwrap_or(default_dict_path().into());
 
-    let dict = Path::new(&dict_path).with_extension("pwd");
-    if !dict.exists() {
-        panic!(
-            "{} doesn't exist, please install cracklib dictionaries",
-            dict.display()
-        );
-    }
-
-    dict_path.insert(0, '\"');
-    dict_path.push('\"');
+    dict_path.insert(0, '"');
+    dict_path.push('"');
 
     cfg.files(files.map(|f| Path::new("cracklib/src/lib").join(f)))
         .include(&out_dir)
