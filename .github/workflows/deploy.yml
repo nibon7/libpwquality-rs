@@ -23,17 +23,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          toolchain: nightly
       - name: Install build dependencies
-        run: sudo apt-get install -y cracklib-runtime
+        run: sudo apt-get install -y libpwquality-dev
       - name: Build Documentation
-        run: cargo doc --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: "--cfg docsrs"
+        run: cargo +nightly doc --features=v1_4_3 --no-deps
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact

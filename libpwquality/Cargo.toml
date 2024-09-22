@@ -1,10 +1,11 @@
 [package]
 name = "libpwquality"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 license = "MIT"
 description = "libpwquality bindings for Rust"
 repository = "https://github.com/nibon7/libpwquality-rs"
+documentation = "https://nibon7.github.io/libpwquality-rs/libpwquality/"
 readme = "../README.md"
 categories = ["api-bindings"]
 keywords = [
@@ -16,15 +17,23 @@ exclude = [
 ]
 
 [package.metadata.docs.rs]
-features = ["vendored"]
-rustc-args = ["--cfg", "docsrs"]
-
-[dependencies]
-libpwquality-sys = { path = "../libpwquality-sys", version = "0.3.0", default-features = false }
-libc = "0.2"
-
-[dev-dependencies]
-serial_test = { version = "1.0", default-features = false }
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-vendored = ["libpwquality-sys/vendored"]
+default = ["v1_0"]
+v1_0 = ["libpwquality-sys/v1_0"]
+v1_2 = ["v1_0", "libpwquality-sys/v1_2"]
+v1_3 = ["v1_2", "libpwquality-sys/v1_3"]
+v1_4 = ["v1_3", "libpwquality-sys/v1_4"]
+v1_4_1 = ["v1_4", "libpwquality-sys/v1_4_1"]
+v1_4_3 = ["v1_4_1", "libpwquality-sys/v1_4_3"]
+v1_4_5 = ["v1_4_3", "libpwquality-sys/v1_4_5"]
+
+[dependencies]
+libpwquality-sys = { path = "../libpwquality-sys", version = "0.4.0", default-features = false }
+libc = "0.2"
+paste = "1.0.15"
+
+[dev-dependencies]
+serial_test = { version = "3.0", default-features = false }

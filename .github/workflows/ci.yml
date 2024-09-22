@@ -13,40 +13,23 @@ jobs:
     name: Lints
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install toolchain
-      uses: actions-rs/toolchain@v1
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-        profile: minimal
         toolchain: stable
         components: rustfmt, clippy
-        override: true
 
     - name: Install build dependencies
       run:
-        sudo apt-get install -y cracklib-runtime
+        sudo apt-get install -y libpwquality-dev
 
     - name: Rustfmt
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --all -- --check
-
-    - name: Check
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --workspace --all-features --all-targets --examples --tests
+      run: cargo fmt --all -- --check
 
     - name: Clippy
-      uses: actions-rs/cargo@v1
-      with:
-        command: clippy
-        args: --workspace --all-features --all-targets --examples --tests -- -D warnings
+      run: cargo clippy --workspace --features=v1_4_3 --all-targets --examples --tests -- -D warnings
 
     - name: Test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --workspace --all-features --all-targets --examples
+      run: cargo test --workspace --features=v1_4_3 --all-targets --examples

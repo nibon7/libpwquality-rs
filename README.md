@@ -12,17 +12,6 @@
 cargo add libpwquality
 ```
 
-libpwquality-rs links system libpwquality library by default, you can
-optionally enable `vendored` feature and install cracklib dictionaries
-to build libpwquality. When the `vendored` feature is enabled, you can
-export `DEFAULT_CRACKLIB_DICT` environment variable to specify the path
-of the dictionaries if you encounter problems with the dictionary path.
-
-```sh
-cargo add libpwquality --features vendored
-sudo apt-get install cracklib-runtime
-```
-
 ## Example
 
 ```rust
