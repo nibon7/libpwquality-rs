@@ -44,7 +44,7 @@ macro_rules! define_settings {
             #[non_exhaustive]
             enum Setting {
                 $(
-                    $(#[cfg(feature = $feature)])?
+                    $(#[cfg(any(feature = $feature, feature = "vendored"))])?
                     $setting = sys::[<PWQ_SETTING_ $setting:snake:upper>] as isize,
                 )*
             }
@@ -112,13 +112,13 @@ type Result<T> = std::result::Result<T, PWQError>;
 macro_rules! define_getseters {
     ($func:ident, $setting:ident, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
         paste! {
-            $(#[cfg(feature = $getter_feature)])?
+            $(#[cfg(any(feature = $getter_feature, feature = "vendored"))])?
             #[doc = "Get " $doc ""]
             pub fn [<get_ $func>] (&self) -> i32 {
                 self.get_int_value($crate::Setting::$setting)
             }
 
-            $(#[cfg(feature = $setter_feature)])?
+            $(#[cfg(any(feature = $setter_feature, feature = "vendored"))])?
             #[doc = "Set " $doc ""]
             pub fn $func(&self, value: i32) -> &Self {
                 self.set_int_value($crate::Setting::$setting, value)
@@ -127,13 +127,13 @@ macro_rules! define_getseters {
     };
     ($func:ident, $setting:ident, bool, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
         paste! {
-            $(#[cfg(feature = $getter_feature)])?
+            $(#[cfg(any(feature = $getter_feature, feature = "vendored"))])?
             #[doc = "Get " $doc ""]
             pub fn [<get_ $func>] (&self) -> bool {
                 self.get_int_value($crate::Setting::$setting) != 0
             }
 
-            $(#[cfg(feature = $setter_feature)])?
+            $(#[cfg(any(feature = $setter_feature, feature = "vendored"))])?
             #[doc = "Set " $doc ""]
             pub fn $func(&self, value: bool) -> &Self {
                 self.set_int_value($crate::Setting::$setting, i32::from(value))

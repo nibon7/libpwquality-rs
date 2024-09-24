@@ -142,7 +142,7 @@ fn test_max_repeat() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_2")]
+#[cfg(any(feature = "v1_2", feature = "vendored"))]
 fn test_max_sequence() {
     let pwq = PWQuality::new().unwrap();
 
@@ -176,7 +176,7 @@ fn test_gecos_check() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_3")]
+#[cfg(any(feature = "v1_3", feature = "vendored"))]
 fn test_dict_check() {
     let pwq = PWQuality::new().unwrap();
 
@@ -188,7 +188,7 @@ fn test_dict_check() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_4")]
+#[cfg(any(feature = "v1_4", feature = "vendored"))]
 fn test_user_check() {
     let pwq = PWQuality::new().unwrap();
 
@@ -202,7 +202,7 @@ fn test_user_check() {
 // see https://github.com/libpwquality/libpwquality/commit/9746fee1812db8afdfec885b9780df96022ebf26
 #[test]
 #[serial]
-#[cfg(feature = "v1_4_5")]
+#[cfg(any(feature = "v1_4_5", feature = "vendored"))]
 fn test_user_substr() {
     let pwq = PWQuality::new().unwrap();
 
@@ -214,7 +214,7 @@ fn test_user_substr() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_4")]
+#[cfg(any(feature = "v1_4", feature = "vendored"))]
 fn test_enforcing() {
     let pwq = PWQuality::new().unwrap();
 
@@ -248,7 +248,7 @@ fn test_dict_path() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_4_1")]
+#[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_retry_times() {
     let pwq = PWQuality::new().unwrap();
 
@@ -260,7 +260,7 @@ fn test_retry_times() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_4_1")]
+#[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_enforce_for_root() {
     let pwq = PWQuality::new().unwrap();
 
@@ -272,7 +272,7 @@ fn test_enforce_for_root() {
 
 #[test]
 #[serial]
-#[cfg(feature = "v1_4_1")]
+#[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_local_users_only() {
     let pwq = PWQuality::new().unwrap();
 
