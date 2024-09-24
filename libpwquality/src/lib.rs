@@ -180,9 +180,10 @@ impl PWQuality {
             None => unsafe { sys::pwquality_read_config(self.pwq, null(), &mut ptr_err) },
         };
 
-        match ret {
-            0 => Ok(self),
-            _ => Err(PWQError::from_aux(ret, Some(ptr_err))),
+        if ret == 0 {
+            Ok(self)
+        } else {
+            Err(PWQError::from_aux(ret, Some(ptr_err)))
         }
     }
 
@@ -211,9 +212,10 @@ impl PWQuality {
         let ret =
             unsafe { sys::pwquality_set_str_value(self.pwq, setting as c_int, value.as_ptr()) };
 
-        match ret {
-            0 => Ok(self),
-            _ => Err(PWQError::from_aux(ret, None)),
+        if ret == 0 {
+            Ok(self)
+        } else {
+            Err(PWQError::from_aux(ret, None))
         }
     }
 
@@ -222,17 +224,16 @@ impl PWQuality {
         let mut ptr: *const c_char = null();
 
         let ret = unsafe { sys::pwquality_get_str_value(self.pwq, setting as c_int, &mut ptr) };
-        match ret {
-            0 => {
-                let s = if ptr.is_null() {
-                    String::new()
-                } else {
-                    unsafe { CStr::from_ptr(ptr).to_string_lossy().to_string() }
-                };
+        if ret == 0 {
+            let s = if ptr.is_null() {
+                String::new()
+            } else {
+                unsafe { CStr::from_ptr(ptr).to_string_lossy().to_string() }
+            };
 
-                Ok(s)
-            }
-            _ => Err(PWQError::from_aux(ret, None)),
+            Ok(s)
+        } else {
+            Err(PWQError::from_aux(ret, None))
         }
     }
 
@@ -240,21 +241,20 @@ impl PWQuality {
     pub fn generate(&self, bits: i32) -> Result<String> {
         let mut ptr: *mut c_char = null_mut();
         let ret = unsafe { sys::pwquality_generate(self.pwq, bits, &mut ptr) };
-        match ret {
-            0 => {
-                let password = unsafe {
-                    debug_assert!(!ptr.is_null());
-                    let str_password = CStr::from_ptr(ptr).to_string_lossy().to_string();
 
-                    // free the memory allocated in the C library
-                    libc::free(ptr as *mut c_void);
+        if ptr.is_null() {
+            Err(PWQError::from_aux(ret, None))
+        } else {
+            let password = unsafe {
+                let str_password = CStr::from_ptr(ptr).to_string_lossy().to_string();
 
-                    str_password
-                };
+                // free the memory allocated in the C library
+                libc::free(ptr as *mut c_void);
 
-                Ok(password)
-            }
-            _ => Err(PWQError::from_aux(ret, None)),
+                str_password
+            };
+
+            Ok(password)
         }
     }
 
