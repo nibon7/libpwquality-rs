@@ -76,7 +76,6 @@ define_settings! {
 }
 
 /// `PWQuality` Error.
-#[derive(Debug)]
 pub struct PWQError(String);
 
 impl PWQError {
@@ -94,10 +93,11 @@ impl PWQError {
     }
 }
 
-impl std::error::Error for PWQError {
-    #[allow(deprecated)]
-    fn description(&self) -> &str {
-        &self.0
+impl std::error::Error for PWQError {}
+
+impl std::fmt::Debug for PWQError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "PWQError: {}", self.0)
     }
 }
 
