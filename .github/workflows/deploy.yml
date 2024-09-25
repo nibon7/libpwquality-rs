@@ -24,22 +24,47 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
+
       - name: Install build dependencies
-        run: sudo apt-get install -y libpwquality-dev
+        run: sudo apt-get install -y libcrack2-dev
+
+      - name: Install build dependencies
+        run: sudo apt-get install -y libcrack2-dev
+
+      - name: Clone libpwquality
+        uses: actions/checkout@v4
+        with:
+            repository: 'libpwquality/libpwquality'
+            path: 'thirdparty/libpwquality'
+
+      - name: Build libpwquality
+        run: |
+          cd thirdparty/libpwquality/src
+          touch config.h
+          cc check.c error.c generate.c settings.c -I. -D"_(msgid)=(msgid)" -D_GNU_SOURCE -DHAVE_CRACK_H -lcrack -fPIC -shared -o libpwquality.so
+          sed -e 's#@prefix@#/usr#' -e 's#@libdir@#/usr/lib#' -e 's#@exec_prefix@#${prefix}#' -e 's#@includedir@#${prefix}/include#' -e 's#@PACKAGE_VERSION@#1.4.5#' pwquality.pc.in > pwquality.pc
+          sudo install -m0644 pwquality.pc /usr/share/pkgconfig/pwquality.pc
+          sudo install -m0644 libpwquality.so /usr/lib/
+          sudo install -m0644 pwquality.h /usr/include/
+
       - name: Build Documentation
         env:
           RUSTDOCFLAGS: "--cfg docsrs"
-        run: cargo +nightly doc --features=v1_4_3 --no-deps
+        run: cargo +nightly doc --all-features --no-deps
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           path: './target/doc/'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
