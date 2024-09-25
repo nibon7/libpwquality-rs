@@ -177,13 +177,12 @@ impl PWQuality {
             CString::new(s).unwrap()
         });
 
-        let ret = unsafe {
-            sys::pwquality_read_config(
-                self.pwq,
-                c_path.map(|p| p.as_ptr()).unwrap_or(null()),
-                &mut aux_error,
-            )
+        let c_path_ptr = match c_path {
+            Some(ref s) => s.as_ptr(),
+            None => null(),
         };
+
+        let ret = unsafe { sys::pwquality_read_config(self.pwq, c_path_ptr, &mut aux_error) };
 
         if ret == 0 {
             Ok(self)
@@ -272,15 +271,25 @@ impl PWQuality {
     ) -> Result<i32> {
         let c_password = CString::new(password).unwrap();
         let mut aux_error = null_mut();
+
         let c_old_password = old_password.map(|s| CString::new(s).unwrap());
+        let c_old_password_ptr = match c_old_password {
+            Some(ref s) => s.as_ptr(),
+            None => null(),
+        };
+
         let c_user = user.map(|s| CString::new(s).unwrap());
+        let c_user_ptr = match c_user {
+            Some(ref s) => s.as_ptr(),
+            None => null(),
+        };
 
         let ret = unsafe {
             sys::pwquality_check(
                 self.pwq,
                 c_password.as_ptr(),
-                c_old_password.map(|s| s.as_ptr()).unwrap_or(null()),
-                c_user.map(|s| s.as_ptr()).unwrap_or(null()),
+                c_old_password_ptr,
+                c_user_ptr,
                 &mut aux_error,
             )
         };
