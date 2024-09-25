@@ -26,6 +26,7 @@
 //! ```
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
 use libpwquality_sys as sys;
 use paste::paste;
 use std::os::raw::{c_char, c_int, c_void};
@@ -79,14 +80,15 @@ define_settings! {
 pub struct PWQError(String);
 
 impl PWQError {
-    fn from_aux(errorkind: i32, auxerror: Option<*mut c_void>) -> Self {
-        let ret = match auxerror {
-            Some(aux) => unsafe { sys::pwquality_strerror(null_mut(), 0, errorkind, aux) },
-            None => unsafe { sys::pwquality_strerror(null_mut(), 0, errorkind, null_mut()) },
-        };
+    fn from_aux(error_kind: i32, aux_error: Option<*mut c_void>) -> Self {
+        let error = aux_error.unwrap_or(null_mut());
+        let ret = unsafe { sys::pwquality_strerror(null_mut(), 0, error_kind, error) };
 
-        debug_assert!(!ret.is_null());
-        let s = unsafe { CStr::from_ptr(ret).to_string_lossy().to_string() };
+        let s = if ret.is_null() {
+            String::new()
+        } else {
+            unsafe { CStr::from_ptr(ret).to_string_lossy().to_string() }
+        };
 
         Self(s)
     }
@@ -169,21 +171,24 @@ impl PWQuality {
 
     /// Parse the configuration file.
     fn read_optional_config<P: AsRef<Path>>(&self, path: Option<P>) -> Result<&Self> {
-        let mut ptr_err = null_mut();
-        let ret = match path {
-            Some(path) => {
-                let str_path = path.as_ref().to_string_lossy().to_string();
-                let c_path = CString::new(str_path).unwrap();
+        let mut aux_error = null_mut();
+        let c_path = path.map(|p| {
+            let s = p.as_ref().to_string_lossy().to_string();
+            CString::new(s).unwrap()
+        });
 
-                unsafe { sys::pwquality_read_config(self.pwq, c_path.as_ptr(), &mut ptr_err) }
-            }
-            None => unsafe { sys::pwquality_read_config(self.pwq, null(), &mut ptr_err) },
+        let ret = unsafe {
+            sys::pwquality_read_config(
+                self.pwq,
+                c_path.map(|p| p.as_ptr()).unwrap_or(null()),
+                &mut aux_error,
+            )
         };
 
         if ret == 0 {
             Ok(self)
         } else {
-            Err(PWQError::from_aux(ret, Some(ptr_err)))
+            Err(PWQError::from_aux(ret, Some(aux_error)))
         }
     }
 
@@ -266,56 +271,22 @@ impl PWQuality {
         user: Option<&str>,
     ) -> Result<i32> {
         let c_password = CString::new(password).unwrap();
-        let mut ptr_err = null_mut();
+        let mut aux_error = null_mut();
+        let c_old_password = old_password.map(|s| CString::new(s).unwrap());
+        let c_user = user.map(|s| CString::new(s).unwrap());
 
-        let ret = match (old_password, user) {
-            (None, None) => unsafe {
-                sys::pwquality_check(self.pwq, c_password.as_ptr(), null(), null(), &mut ptr_err)
-            },
-            (Some(old_password), None) => {
-                let c_old_password = CString::new(old_password).unwrap();
-
-                unsafe {
-                    sys::pwquality_check(
-                        self.pwq,
-                        c_password.as_ptr(),
-                        c_old_password.as_ptr(),
-                        null(),
-                        &mut ptr_err,
-                    )
-                }
-            }
-            (None, Some(user)) => {
-                let c_user = CString::new(user).unwrap();
-
-                unsafe {
-                    sys::pwquality_check(
-                        self.pwq,
-                        c_password.as_ptr(),
-                        null(),
-                        c_user.as_ptr(),
-                        &mut ptr_err,
-                    )
-                }
-            }
-            (Some(old_password), Some(user)) => {
-                let c_old_password = CString::new(old_password).unwrap();
-                let c_user = CString::new(user).unwrap();
-
-                unsafe {
-                    sys::pwquality_check(
-                        self.pwq,
-                        c_password.as_ptr(),
-                        c_old_password.as_ptr(),
-                        c_user.as_ptr(),
-                        &mut ptr_err,
-                    )
-                }
-            }
+        let ret = unsafe {
+            sys::pwquality_check(
+                self.pwq,
+                c_password.as_ptr(),
+                c_old_password.map(|s| s.as_ptr()).unwrap_or(null()),
+                c_user.map(|s| s.as_ptr()).unwrap_or(null()),
+                &mut aux_error,
+            )
         };
 
         if ret < 0 {
-            Err(PWQError::from_aux(ret, Some(ptr_err)))
+            Err(PWQError::from_aux(ret, Some(aux_error)))
         } else {
             Ok(ret)
         }
@@ -446,7 +417,7 @@ impl PWQuality {
     define_getseters! {
         user_substr,
         UserSubstr,
-        "the length of substrings of the username to check.",
+        "the length of substrings of the user name to check.",
         "v1_4_5",
         "v1_4_3"
     }
