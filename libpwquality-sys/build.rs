@@ -23,6 +23,10 @@ mod vendor {
     }
 
     fn default_dict_path() -> Result<String> {
+        if std::env::var("DOCS_RS").is_ok() {
+            return Ok("/path/to/cracklib_dict".into());
+        }
+
         if let Ok(path) = std::env::var("DEFAULT_CRACKLIB_DICT") {
             return Ok(path);
         }
