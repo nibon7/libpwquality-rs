@@ -9,7 +9,11 @@ mod vendor {
     use std::{fs::File, process::Command};
 
     fn update_submodule(module: &str) -> Result<()> {
-        if !Path::new(module).join("src").exists() {
+        if std::env::var("DOCS_RS").is_ok() {
+            return Ok(());
+        }
+
+        if !Path::new(module).join(".git").exists() {
             Command::new("git")
                 .args(["submodule", "update", "--init", "--recursive"])
                 .status()?;
@@ -87,7 +91,7 @@ mod vendor {
     }
 
     pub(super) fn header_path(out_dir: impl AsRef<Path>) -> Result<String> {
-        for module in ["cracklib", "pwquality"] {
+        for module in ["cracklib", "libpwquality"] {
             update_submodule(module)?;
         }
 
