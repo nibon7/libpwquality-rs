@@ -26,7 +26,17 @@ fn test_generate() {
 fn test_check() {
     let pwq = PWQuality::new().unwrap();
     let score = pwq.check("p@s5w0rD!", None, None).unwrap();
+    assert!(score >= 0);
 
+    let score = pwq.check("p@s5w0rD!", Some("password"), None).unwrap();
+    assert!(score >= 0);
+
+    let score = pwq
+        .check("p@s5w0rD!", Some("password"), Some("root"))
+        .unwrap();
+    assert!(score >= 0);
+
+    let score = pwq.check("p@s5w0rD!", None, Some("root")).unwrap();
     assert!(score >= 0);
 }
 
