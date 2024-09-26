@@ -8,12 +8,19 @@ mod vendor {
     use cc::Build;
     use std::{fs::File, process::Command};
 
-    fn update_submodule(module: &str) -> Result<()> {
-        if std::env::var("DOCS_RS").is_ok() {
+    fn is_docsrs() -> bool {
+        std::env::var("DOCS_RS").is_ok()
+    }
+
+    fn update_submodule(module: impl AsRef<Path>) -> Result<()> {
+        if is_docsrs() {
             return Ok(());
         }
 
-        if !Path::new(module).join(".git").exists() {
+        if [".git", "src"]
+            .iter()
+            .all(|s| !module.as_ref().join(s).exists())
+        {
             Command::new("git")
                 .args(["submodule", "update", "--init", "--recursive"])
                 .status()?;
@@ -23,7 +30,7 @@ mod vendor {
     }
 
     fn default_dict_path() -> Result<String> {
-        if std::env::var("DOCS_RS").is_ok() {
+        if is_docsrs() {
             return Ok("/path/to/cracklib_dict".into());
         }
 
