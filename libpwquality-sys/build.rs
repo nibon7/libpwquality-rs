@@ -9,7 +9,7 @@ mod vendor {
     use std::{fs::File, process::Command};
 
     fn update_submodule(module: &str) -> Result<()> {
-        if !Path::new(module).join(".git").exists() {
+        if !Path::new(module).join("src").exists() {
             Command::new("git")
                 .args(["submodule", "update", "--init", "--recursive"])
                 .status()?;
