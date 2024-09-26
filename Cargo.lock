@@ -155,7 +155,7 @@ dependencies = [
 
 [[package]]
 name = "libpwquality"
-version = "0.7.3"
+version = "0.8.0"
 dependencies = [
  "libc",
  "libpwquality-sys",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "libpwquality-sys"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "bindgen",
  "cc",
