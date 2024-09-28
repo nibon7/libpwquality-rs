@@ -24,6 +24,19 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! ## Cargo features
+//!
+//! * `vX_Y_Z`:  Build with system libpwquality version X.Y.Z.
+//!
+//! * `vendored`: Build with vendored libpwquality.
+//!   This requires cracklib to be installed.
+//!   You can also set `CRACKLIB_INCLUDE_PATH` and `CRACKLIB_LIBRARY_PATH`
+//!   environment variables to specify the include path and library path.
+//!
+//! * `vendored-cracklib`: Build with vendored libpwquality and cracklib.
+//!    The build script will try to guess the path of cracklib dictionaries,
+//!    but you can set `DEFAULT_CRACKLIB_DICT` environment variable to override it.
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
@@ -44,7 +57,7 @@ macro_rules! define_settings {
             #[non_exhaustive]
             enum Setting {
                 $(
-                    $(#[cfg(any(feature = $feature, feature = "vendored"))])?
+                    $(#[cfg(any(feature = $feature, feature = "vendored", feature = "vendored-cracklib"))])?
                     $setting = sys::[<PWQ_SETTING_ $setting:snake:upper>] as isize,
                 )*
             }
@@ -112,13 +125,13 @@ type Result<T> = std::result::Result<T, PWQError>;
 macro_rules! define_getseters {
     ($func:ident, $setting:ident, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
         paste! {
-            $(#[cfg(any(feature = $getter_feature, feature = "vendored"))])?
+            $(#[cfg(any(feature = $getter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
             #[doc = "Get " $doc ""]
             pub fn [<get_ $func>] (&self) -> i32 {
                 self.get_int_value($crate::Setting::$setting)
             }
 
-            $(#[cfg(any(feature = $setter_feature, feature = "vendored"))])?
+            $(#[cfg(any(feature = $setter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
             #[doc = "Set " $doc ""]
             pub fn $func(&self, value: i32) -> &Self {
                 self.set_int_value($crate::Setting::$setting, value)
@@ -127,13 +140,13 @@ macro_rules! define_getseters {
     };
     ($func:ident, $setting:ident, bool, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
         paste! {
-            $(#[cfg(any(feature = $getter_feature, feature = "vendored"))])?
+            $(#[cfg(any(feature = $getter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
             #[doc = "Get " $doc ""]
             pub fn [<get_ $func>] (&self) -> bool {
                 self.get_int_value($crate::Setting::$setting) != 0
             }
 
-            $(#[cfg(any(feature = $setter_feature, feature = "vendored"))])?
+            $(#[cfg(any(feature = $setter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
             #[doc = "Set " $doc ""]
             pub fn $func(&self, value: bool) -> &Self {
                 self.set_int_value($crate::Setting::$setting, i32::from(value))

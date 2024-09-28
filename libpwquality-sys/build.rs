@@ -61,12 +61,14 @@ mod vendor {
         Ok(path)
     }
 
-    fn build_cracklib(out_dir: impl AsRef<Path>) -> Result<()> {
+    fn build_cracklib(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
         println!("cargo:rerun-if-env-changed=DEFAULT_CRACKLIB_DICT");
 
+        update_submodule("cracklib")?;
+
         let dict_path = format!("\"{}\"", default_dict_path()?);
-        let src_dir = Path::new("cracklib/src/lib");
-        let files = ["fascist.c", "packlib.c", "rules.c", "stringlib.c"].map(|f| src_dir.join(f));
+        let files =
+            ["fascist.c", "packlib.c", "rules.c", "stringlib.c"].map(|f| src_dir.as_ref().join(f));
 
         Build::new()
             .files(files)
@@ -82,34 +84,54 @@ mod vendor {
         Ok(())
     }
 
-    fn build_libpwquality(out_dir: impl AsRef<Path>) -> Result<()> {
-        let src_dir = Path::new("libpwquality/src");
-        let files = ["check.c", "error.c", "generate.c", "settings.c"].map(|f| src_dir.join(f));
+    fn build_libpwquality(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
+        update_submodule("libpwquality")?;
 
-        cc::Build::new()
+        let files =
+            ["check.c", "error.c", "generate.c", "settings.c"].map(|f| src_dir.as_ref().join(f));
+
+        let mut build = cc::Build::new();
+
+        build
             .files(files)
             .include(&out_dir)
             .include(src_dir)
-            .include("cracklib/src/lib")
             .define("HAVE_CRACK_H", None)
             .define("_(msgid)", "(msgid)")
             .define("_GNU_SOURCE", None)
             .warnings(false)
-            .out_dir(out_dir)
-            .try_compile("pwquality")?;
+            .out_dir(&out_dir);
+
+        if cfg!(feature = "vendored-cracklib") {
+            let cracklib_src_dir = Path::new("cracklib/src/lib");
+
+            build.include(cracklib_src_dir);
+            build_cracklib(cracklib_src_dir, &out_dir)?;
+        } else {
+            println!("cargo:rerun-if-env-changed=CRACKLIB_INCLUDE_PATH");
+            println!("cargo:rerun-if-env-changed=CRACKLIB_LIBRARY_PATH");
+
+            if let Ok(include_path) = std::env::var("CRACKLIB_INCLUDE_PATH") {
+                build.include(include_path);
+            }
+
+            if let Ok(library_path) = std::env::var("CRACKLIB_LIBRARY_PATH") {
+                println!("cargo:rustc-link-search={library_path}");
+            }
+
+            println!("cargo:rustc-link-lib=crack");
+        }
+
+        build.try_compile("pwquality")?;
 
         Ok(())
     }
 
     pub(super) fn header_path(out_dir: impl AsRef<Path>) -> Result<String> {
-        for module in ["cracklib", "libpwquality"] {
-            update_submodule(module)?;
-        }
-
         File::create(out_dir.as_ref().join("config.h"))?;
 
-        build_cracklib(out_dir.as_ref())?;
-        build_libpwquality(out_dir.as_ref())?;
+        let src_dir = Path::new("libpwquality/src");
+        build_libpwquality(src_dir, &out_dir)?;
 
         Ok("libpwquality/src/pwquality.h".into())
     }

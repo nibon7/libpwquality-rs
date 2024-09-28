@@ -43,3 +43,16 @@ fn main() -> Result<(), PWQError> {
     Ok(())
 }
 ```
+
+## Cargo features
+
+* `vX_Y_Z`:  Build with system libpwquality version X.Y.Z.
+
+* `vendored`: Build with vendored libpwquality.
+  This requires cracklib to be installed.
+  You can also set `CRACKLIB_INCLUDE_PATH` and `CRACKLIB_LIBRARY_PATH`
+  environment variables to specify the include path and library path.
+
+* `vendored-cracklib`: Build with vendored libpwquality and cracklib.
+   The build script will try to guess the path of cracklib dictionaries,
+   but you can set `DEFAULT_CRACKLIB_DICT` environment variable to override it.
