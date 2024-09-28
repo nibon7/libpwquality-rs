@@ -118,12 +118,31 @@ mod vendor {
 #[cfg(not(feature = "vendored"))]
 mod system {
     use super::{Path, Result};
-    use system_deps::Config;
+    use pkg_config::Config;
+
+    fn features_to_version() -> &'static str {
+        if cfg!(feature = "v1_4_5") {
+            "1.4.5"
+        } else if cfg!(feature = "v1_4_3") {
+            "1.4.3"
+        } else if cfg!(feature = "v1_4_1") {
+            "1.4.1"
+        } else if cfg!(feature = "v1_4") {
+            "1.4.0"
+        } else if cfg!(feature = "v1_3") {
+            "1.3.0"
+        } else if cfg!(feature = "v1_2") {
+            "1.2.0"
+        } else {
+            "1.0.0"
+        }
+    }
 
     pub(super) fn header_path(_out_dir: impl AsRef<Path>) -> Result<String> {
         let header = Config::new()
-            .probe()?
-            .all_include_paths()
+            .atleast_version(features_to_version())
+            .probe("pwquality")?
+            .include_paths
             .iter()
             .find_map(|p| {
                 let header = p.join("pwquality.h");

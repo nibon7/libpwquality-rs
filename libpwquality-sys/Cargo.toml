@@ -1,6 +1,6 @@
 [package]
 name = "libpwquality-sys"
-version = "0.5.4"
+version = "0.5.5"
 edition = "2021"
 license = "GPL-2.0-or-later"
 description = "Native bindings to the libpwquality library"
@@ -23,15 +23,6 @@ include = [
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
-[package.metadata.system-deps.pwquality]
-version = "1.0.0"
-v1_2 = { version = "1.2.0" }
-v1_3 = { version = "1.3.0" }
-v1_4 = { version = "1.4.0" }
-v1_4_1 = { version = "1.4.1" }
-v1_4_3 = { version = "1.4.3" }
-v1_4_5 = { version = "1.4.5" }
-
 [lib]
 name = "libpwquality_sys"
 path = "lib.rs"
@@ -48,5 +39,5 @@ vendored = []
 
 [build-dependencies]
 bindgen = "0.70.1"
-system-deps = "7.0.2"
+pkg-config = "0.3.31"
 cc = "1.1.21"
