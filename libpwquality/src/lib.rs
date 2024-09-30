@@ -3,26 +3,7 @@
 //! ## Example
 //!
 //! ```
-//! use libpwquality::{PWQError, PWQuality};
-//!
-//! fn main() -> Result<(), PWQError> {
-//!     let pwq = PWQuality::new()?;
-//!
-//!     pwq.read_default_config()?
-//!         .min_length(9)
-//!         .max_repeat(2)
-//!         .bad_words(["bad", "password"])?;
-//!
-//!     let password = pwq.generate(32)?;
-//!
-//!     println!("password={:?}", password);
-//!
-//!     let score = pwq.check(&password, None, None)?;
-//!
-//!     println!("score={}", score);
-//!
-//!     Ok(())
-//! }
+#![doc = include_str!("../examples/example.rs")]
 //! ```
 //!
 //! ## Cargo features
