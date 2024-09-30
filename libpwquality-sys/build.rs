@@ -6,6 +6,7 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod vendor {
     use super::{Path, Result};
     use cc::Build;
+    use pkg_config::{probe_library, Library};
     use std::{fs::File, process::Command};
 
     fn is_docsrs() -> bool {
@@ -61,6 +62,20 @@ mod vendor {
         Ok(path)
     }
 
+    fn link_zlib(build: &mut Build, zlib: &Library) {
+        build
+            .define("HAVE_ZLIB_H", None)
+            .includes(&zlib.include_paths);
+
+        for lib in &zlib.libs {
+            println!("cargo:rustc-link-lib={lib}");
+        }
+
+        for path in &zlib.link_paths {
+            println!("cargo:rustc-link-search={}", path.display());
+        }
+    }
+
     fn build_cracklib(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
         println!("cargo:rerun-if-env-changed=DEFAULT_CRACKLIB_DICT");
 
@@ -70,7 +85,9 @@ mod vendor {
         let files =
             ["fascist.c", "packlib.c", "rules.c", "stringlib.c"].map(|f| src_dir.as_ref().join(f));
 
-        Build::new()
+        let mut build = Build::new();
+
+        build
             .files(files)
             .include(&out_dir)
             .include(src_dir)
@@ -78,8 +95,13 @@ mod vendor {
             .define("IN_CRACKLIB", None)
             .define("DEFAULT_CRACKLIB_DICT", Some(dict_path.as_str()))
             .warnings(false)
-            .out_dir(&out_dir)
-            .try_compile("crack")?;
+            .out_dir(&out_dir);
+
+        if let Ok(zlib) = probe_library("zlib") {
+            link_zlib(&mut build, &zlib);
+        }
+
+        build.try_compile("crack")?;
 
         Ok(())
     }
