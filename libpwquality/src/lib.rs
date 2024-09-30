@@ -73,17 +73,21 @@ define_settings! {
 pub struct PWQError(String);
 
 impl PWQError {
-    fn from_aux(error_kind: i32, aux_error: Option<*mut c_void>) -> Self {
+    fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
         let error = aux_error.unwrap_or(null_mut());
-        let ret = unsafe { sys::pwquality_strerror(null_mut(), 0, error_kind, error) };
+        let ret = unsafe { sys::pwquality_strerror(null_mut(), 0, error_code, error) };
 
         let s = if ret.is_null() {
-            String::new()
+            format!("Unknown error: errcode={error_code}")
         } else {
             unsafe { CStr::from_ptr(ret).to_string_lossy().to_string() }
         };
 
         Self(s)
+    }
+
+    fn new(error_code: i32) -> Self {
+        Self::new_aux(error_code, None)
     }
 }
 
@@ -147,7 +151,7 @@ impl PWQuality {
         let pwq = unsafe { sys::pwquality_default_settings() };
 
         if pwq.is_null() {
-            Err(PWQError::from_aux(sys::PWQ_ERROR_MEM_ALLOC, None))
+            Err(PWQError::new(sys::PWQ_ERROR_MEM_ALLOC))
         } else {
             Ok(Self { pwq })
         }
@@ -182,7 +186,7 @@ impl PWQuality {
         if ret == 0 {
             Ok(self)
         } else {
-            Err(PWQError::from_aux(ret, Some(aux_error)))
+            Err(PWQError::new_aux(ret, Some(aux_error)))
         }
     }
 
@@ -214,7 +218,7 @@ impl PWQuality {
         if ret == 0 {
             Ok(self)
         } else {
-            Err(PWQError::from_aux(ret, None))
+            Err(PWQError::new(ret))
         }
     }
 
@@ -232,7 +236,7 @@ impl PWQuality {
 
             Ok(s)
         } else {
-            Err(PWQError::from_aux(ret, None))
+            Err(PWQError::new(ret))
         }
     }
 
@@ -242,7 +246,7 @@ impl PWQuality {
         let ret = unsafe { sys::pwquality_generate(self.pwq, bits, &mut ptr) };
 
         if ptr.is_null() {
-            Err(PWQError::from_aux(ret, None))
+            Err(PWQError::new(ret))
         } else {
             let password = unsafe {
                 let str_password = CStr::from_ptr(ptr).to_string_lossy().to_string();
@@ -284,7 +288,7 @@ impl PWQuality {
         };
 
         if ret < 0 {
-            Err(PWQError::from_aux(ret, Some(aux_error)))
+            Err(PWQError::new_aux(ret, Some(aux_error)))
         } else {
             Ok(ret)
         }
