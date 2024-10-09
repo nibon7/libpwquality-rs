@@ -1,6 +1,6 @@
 [package]
 name = "libpwquality"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2021"
 license = "GPL-2.0-or-later"
 description = "libpwquality bindings for Rust"
@@ -32,7 +32,7 @@ vendored = ["libpwquality-sys/vendored"]
 vendored-cracklib = ["vendored", "libpwquality-sys/vendored-cracklib"]
 
 [dependencies]
-libpwquality-sys = { path = "../libpwquality-sys", version = "0.6.0", default-features = false }
+libpwquality-sys = { path = "../libpwquality-sys", version = "0.6.1", default-features = false }
 libc = "0.2"
 paste = "1.0.15"
 
