@@ -34,14 +34,14 @@ use std::{
 };
 
 macro_rules! define_settings {
-    ($($setting:ident $(:$feature:literal)?,)*) => {
+    ($($(#[$meta:meta])? $setting:ident),* $(,)?) => {
         paste! {
             /// `PWQuality` Setting.
             #[derive(Copy, Clone, Debug)]
             #[non_exhaustive]
             enum Setting {
                 $(
-                    $(#[cfg(any(feature = $feature, feature = "vendored", feature = "vendored-cracklib"))])?
+                    $(#[$meta])?
                     $setting = sys::[<PWQ_SETTING_ $setting:snake:upper>] as isize,
                 )*
             }
@@ -62,14 +62,22 @@ define_settings! {
     MaxClassRepeat,
     GecosCheck,
     BadWords,
-    MaxSequence: "v1_2",
-    DictCheck: "v1_3",
-    UserCheck: "v1_4",
-    Enforcing: "v1_4",
-    RetryTimes: "v1_4_1",
-    EnforceRoot: "v1_4_1",
-    LocalUsers: "v1_4_1",
-    UserSubstr: "v1_4_3",
+    #[cfg(any(feature = "v1_2", feature = "vendored", feature = "vendored-cracklib"))]
+    MaxSequence,
+    #[cfg(any(feature = "v1_3", feature = "vendored", feature = "vendored-cracklib"))]
+    DictCheck,
+    #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+    UserCheck,
+    #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+    Enforcing,
+    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    RetryTimes,
+    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    EnforceRoot,
+    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    LocalUsers,
+    #[cfg(any(feature = "v1_4_3", feature = "vendored", feature = "vendored-cracklib"))]
+    UserSubstr,
 }
 
 /// `PWQuality` Error.
@@ -111,31 +119,35 @@ impl std::fmt::Display for PWQError {
 type Result<T> = std::result::Result<T, PWQError>;
 
 macro_rules! define_getseters {
-    ($func:ident, $setting:ident, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
+    (#[$doc_meta:meta] $(#[$feat_meta:meta])? $func:ident, $setting:ident) => {
         paste! {
-            $(#[cfg(any(feature = $getter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
-            #[doc = "Get " $doc ""]
+            $(#[$feat_meta])?
+            #[doc = " Get"]
+            #[$doc_meta]
             pub fn [<get_ $func>] (&self) -> i32 {
                 self.get_int_value($crate::Setting::$setting)
             }
 
-            $(#[cfg(any(feature = $setter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
-            #[doc = "Set " $doc ""]
+            $(#[$feat_meta])?
+            #[doc = " Set"]
+            #[$doc_meta]
             pub fn $func(&self, value: i32) -> &Self {
                 self.set_int_value($crate::Setting::$setting, value)
             }
         }
     };
-    ($func:ident, $setting:ident, bool, $doc:literal $(,$getter_feature:literal, $setter_feature:literal)?) => {
+    (#[$doc_meta:meta] $(#[$feat_meta:meta])? $func:ident, $setting:ident, bool) => {
         paste! {
-            $(#[cfg(any(feature = $getter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
-            #[doc = "Get " $doc ""]
+            $(#[$feat_meta])?
+            #[doc = " Get"]
+            #[$doc_meta]
             pub fn [<get_ $func>] (&self) -> bool {
                 self.get_int_value($crate::Setting::$setting) != 0
             }
 
-            $(#[cfg(any(feature = $setter_feature, feature = "vendored", feature = "vendored-cracklib"))])?
-            #[doc = "Set " $doc ""]
+            $(#[$feat_meta])?
+            #[doc = " Set"]
+            #[$doc_meta]
             pub fn $func(&self, value: bool) -> &Self {
                 self.set_int_value($crate::Setting::$setting, i32::from(value))
             }
@@ -298,133 +310,138 @@ impl PWQuality {
     }
 
     define_getseters! {
+        #[doc = " the minimum number of characters in the new password that must not be present in the old password."]
         min_diff,
-        DiffOk,
-        "the minimum number of characters in the new password that must not be present in the old password."
+        DiffOk
     }
 
     define_getseters! {
+        #[doc = " the minimum acceptable size for the new password."]
         min_length,
-        MinLength,
-        "the minimum acceptable size for the new password."
+        MinLength
     }
 
     define_getseters! {
+        #[doc = " the maximum credit for having digits in the new password."]
         digit_credit,
-        DigCredit,
-        "the maximum credit for having digits in the new password."
+        DigCredit
     }
 
     define_getseters! {
+        #[doc = " the maximum credit for having uppercase characters in the new password."]
         uppercase_credit,
-        UpCredit,
-        "the maximum credit for having uppercase characters in the new password."
+        UpCredit
     }
 
     define_getseters! {
+        #[doc = " the maximum credit for having lowercase characters in the new password."]
         lowercase_credit,
-        LowCredit,
-        "the maximum credit for having lowercase characters in the new password."
+        LowCredit
     }
 
     define_getseters! {
+        #[doc = " the maximum credit for having other characters in the new password."]
         other_credit,
-        OthCredit,
-        "the maximum credit for having other characters in the new password."
+        OthCredit
     }
 
     define_getseters! {
+        #[doc = " the minimum number of required classes of characters for the new password."]
         min_class,
-        MinClass,
-        "the minimum number of required classes of characters for the new password."
+        MinClass
     }
 
     define_getseters! {
+        #[doc = " the maximum number of allowed same consecutive characters in the new password."]
         max_repeat,
-        MaxRepeat,
-        "the maximum number of allowed same consecutive characters in the new password."
+        MaxRepeat
     }
 
     define_getseters! {
+        #[doc = " the maximum number of allowed consecutive characters of the same class in the new password."]
         max_class_repeat,
-        MaxClassRepeat,
-        "the maximum number of allowed consecutive characters of the same class in the new password."
+        MaxClassRepeat
     }
 
     define_getseters! {
+        #[doc = " the maximum length of monotonic character sequences in the new password."]
+        #[cfg(any(feature = "v1_2", feature = "vendored", feature = "vendored-cracklib"))]
         max_sequence,
-        MaxSequence,
-        "the maximum length of monotonic character sequences in the new password.",
-        "v1_2",
-        "v1_2"
+        MaxSequence
     }
 
     define_getseters! {
+        #[doc = " whether to perform the passwd GECOS field check."]
         gecos_check,
         GecosCheck,
-        bool,
-        "whether to perform the passwd GECOS field check."
+        bool
     }
 
     define_getseters! {
+        #[doc = " whether to perform the dictionary check."]
+        #[cfg(any(feature = "v1_3", feature = "vendored", feature = "vendored-cracklib"))]
         dict_check,
         DictCheck,
-        bool,
-        "whether to perform the dictionary check.",
-        "v1_3",
-        "v1_3"
+        bool
     }
 
     define_getseters! {
+        #[doc = " whether to perform the user name check."]
+        #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
         user_check,
         UserCheck,
-        bool,
-        "whether to perform the user name check.",
-        "v1_4",
-        "v1_4"
+        bool
     }
 
     define_getseters! {
+        #[doc = " whether the check is enforced."]
+        #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
         enforcing,
         Enforcing,
-        bool,
-        "whether the check is enforced.",
-        "v1_4",
-        "v1_4"
+        bool
     }
 
     define_getseters! {
+        #[doc = " maximum retries for the password change should be allowed."]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
         retry_times,
-        RetryTimes,
-        "maximum retries for the password change should be allowed.",
-        "v1_4_1",
-        "v1_4_1"
+        RetryTimes
     }
 
     define_getseters! {
+        #[doc = " whether the check is enforced for root."]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
         enforce_for_root,
         EnforceRoot,
-        bool,
-        "whether the check is enforced for root.",
-        "v1_4_1",
-        "v1_4_1"
+        bool
     }
 
     define_getseters! {
+        #[doc = " whether to check local users only."]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
         local_users_only,
         LocalUsers,
-        bool,
-        "whether to check local users only.",
-        "v1_4_1",
-        "v1_4_1"
+        bool
     }
 
-    define_getseters! {
-        user_substr,
-        UserSubstr,
-        "the length of substrings of the user name to check.",
-        "v1_4_5",
-        "v1_4_3"
+    #[cfg(any(
+        feature = "v1_4_5",
+        feature = "vendored",
+        feature = "vendored-cracklib"
+    ))]
+    /// Get the length of substrings of the user name to check.
+    pub fn get_user_substr(&self) -> i32 {
+        self.get_int_value(crate::Setting::UserSubstr)
+    }
+
+    #[cfg(any(
+        feature = "v1_4_3",
+        feature = "vendored",
+        feature = "vendored-cracklib"
+    ))]
+    /// Set the length of substrings of the user name to check.
+    pub fn user_substr(&self, value: i32) -> &Self {
+        self.set_int_value(crate::Setting::UserSubstr, value)
     }
 
     /// Set the list of words more than 3 characters long that are forbidden.
