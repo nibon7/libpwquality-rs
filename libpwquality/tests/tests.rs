@@ -1,10 +1,8 @@
 use libpwquality::PWQuality;
-use serial_test::serial;
 
 const MAX: i32 = 10;
 
 #[test]
-#[serial]
 fn test_read_config() {
     let pwq = PWQuality::new().unwrap();
     let ret = pwq.read_config("/invalid/path/pwquality.conf");
@@ -13,7 +11,6 @@ fn test_read_config() {
 }
 
 #[test]
-#[serial]
 fn test_generate() {
     let pwq = PWQuality::new().unwrap();
     let password = pwq.generate(32).unwrap();
@@ -22,7 +19,6 @@ fn test_generate() {
 }
 
 #[test]
-#[serial]
 fn test_check() {
     let pwq = PWQuality::new().unwrap();
     let score = pwq.check("p@s5w0rD!", None, None).unwrap();
@@ -41,7 +37,6 @@ fn test_check() {
 }
 
 #[test]
-#[serial]
 fn test_min_diff() {
     let pwq = PWQuality::new().unwrap();
 
@@ -52,7 +47,6 @@ fn test_min_diff() {
 }
 
 #[test]
-#[serial]
 fn test_min_length() {
     const PWQ_BASE_MIN_LENGTH: i32 = 6;
     let pwq = PWQuality::new().unwrap();
@@ -69,7 +63,6 @@ fn test_min_length() {
 }
 
 #[test]
-#[serial]
 fn test_digit_credit() {
     let pwq = PWQuality::new().unwrap();
 
@@ -80,7 +73,6 @@ fn test_digit_credit() {
 }
 
 #[test]
-#[serial]
 fn test_uppercase_credit() {
     let pwq = PWQuality::new().unwrap();
 
@@ -91,7 +83,6 @@ fn test_uppercase_credit() {
 }
 
 #[test]
-#[serial]
 fn test_lowercase_credit() {
     let pwq = PWQuality::new().unwrap();
 
@@ -102,7 +93,6 @@ fn test_lowercase_credit() {
 }
 
 #[test]
-#[serial]
 fn test_other_credit() {
     let pwq = PWQuality::new().unwrap();
 
@@ -113,7 +103,6 @@ fn test_other_credit() {
 }
 
 #[test]
-#[serial]
 fn test_min_class() {
     const PWQ_NUM_CLASSES: i32 = 4;
     let pwq = PWQuality::new().unwrap();
@@ -130,7 +119,6 @@ fn test_min_class() {
 }
 
 #[test]
-#[serial]
 fn test_max_repeat() {
     let pwq = PWQuality::new().unwrap();
 
@@ -141,7 +129,6 @@ fn test_max_repeat() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_2", feature = "vendored"))]
 fn test_max_sequence() {
     let pwq = PWQuality::new().unwrap();
@@ -153,7 +140,6 @@ fn test_max_sequence() {
 }
 
 #[test]
-#[serial]
 fn test_max_class_repeat() {
     let pwq = PWQuality::new().unwrap();
 
@@ -164,7 +150,6 @@ fn test_max_class_repeat() {
 }
 
 #[test]
-#[serial]
 fn test_gecos_check() {
     let pwq = PWQuality::new().unwrap();
 
@@ -175,7 +160,6 @@ fn test_gecos_check() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_3", feature = "vendored"))]
 fn test_dict_check() {
     let pwq = PWQuality::new().unwrap();
@@ -187,7 +171,6 @@ fn test_dict_check() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4", feature = "vendored"))]
 fn test_user_check() {
     let pwq = PWQuality::new().unwrap();
@@ -201,7 +184,6 @@ fn test_user_check() {
 // The getter is not available before 1.4.5
 // see https://github.com/libpwquality/libpwquality/commit/9746fee1812db8afdfec885b9780df96022ebf26
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4_5", feature = "vendored"))]
 fn test_user_substr() {
     let pwq = PWQuality::new().unwrap();
@@ -213,7 +195,6 @@ fn test_user_substr() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4", feature = "vendored"))]
 fn test_enforcing() {
     let pwq = PWQuality::new().unwrap();
@@ -225,7 +206,6 @@ fn test_enforcing() {
 }
 
 #[test]
-#[serial]
 fn test_bad_words() {
     let pwq = PWQuality::new().unwrap();
 
@@ -235,7 +215,6 @@ fn test_bad_words() {
 }
 
 #[test]
-#[serial]
 fn test_dict_path() {
     let pwq = PWQuality::new().unwrap();
 
@@ -247,7 +226,6 @@ fn test_dict_path() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_retry_times() {
     let pwq = PWQuality::new().unwrap();
@@ -259,7 +237,6 @@ fn test_retry_times() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_enforce_for_root() {
     let pwq = PWQuality::new().unwrap();
@@ -271,7 +248,6 @@ fn test_enforce_for_root() {
 }
 
 #[test]
-#[serial]
 #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
 fn test_local_users_only() {
     let pwq = PWQuality::new().unwrap();
