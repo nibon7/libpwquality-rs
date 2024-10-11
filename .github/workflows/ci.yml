@@ -32,3 +32,14 @@ jobs:
 
     - name: Test
       run: cargo test --workspace --all-features --all-targets --examples
+
+    - name: Install cargo-valgrind
+      run: |
+        sudo apt-get install -y valgrind
+        cargo install cargo-valgrind
+
+    - name: Valgrind
+      run: |
+        ulimit -n 1024
+        cargo valgrind run --all-features --example example
+        cargo valgrind test --workspace --all-features --all-targets --examples
