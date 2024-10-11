@@ -257,3 +257,11 @@ fn test_local_users_only() {
         assert_eq!(pwq.get_local_users_only(), value);
     }
 }
+
+#[test]
+#[cfg(feature = "vendored")]
+fn test_config_name() {
+    let pwq = PWQuality::new().unwrap();
+
+    assert!(pwq.config_name(None).is_ok());
+}
