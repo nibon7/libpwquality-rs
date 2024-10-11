@@ -78,6 +78,7 @@ mod vendor {
 
     fn build_cracklib(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
         println!("cargo:rerun-if-env-changed=DEFAULT_CRACKLIB_DICT");
+        println!("cargo:rerun-if-changed={}", src_dir.as_ref().display());
 
         update_submodule("cracklib")?;
 
@@ -107,6 +108,8 @@ mod vendor {
     }
 
     fn build_libpwquality(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
+        println!("cargo:rerun-if-changed={}", src_dir.as_ref().display());
+
         update_submodule("libpwquality")?;
 
         let files =
