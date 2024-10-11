@@ -85,16 +85,15 @@ pub struct PWQError(String);
 
 impl PWQError {
     fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
-        let error = aux_error.unwrap_or(null_mut());
-        let ret = unsafe { sys::pwquality_strerror(null_mut(), 0, error_code, error) };
+        unsafe {
+            let s =
+                sys::pwquality_strerror(null_mut(), 0, error_code, aux_error.unwrap_or(null_mut()))
+                    .as_ref()
+                    .map(|p| CStr::from_ptr(p).to_string_lossy().to_string())
+                    .unwrap_or(format!("Unknown error: errcode={error_code}"));
 
-        let s = if ret.is_null() {
-            format!("Unknown error: errcode={error_code}")
-        } else {
-            unsafe { CStr::from_ptr(ret).to_string_lossy().to_string() }
-        };
-
-        Self(s)
+            Self(s)
+        }
     }
 
     fn new(error_code: i32) -> Self {
@@ -163,12 +162,12 @@ pub struct PWQuality {
 impl PWQuality {
     /// Create a new `PWQuality` instance.
     pub fn new() -> Result<Self> {
-        let pwq = unsafe { sys::pwquality_default_settings() };
+        unsafe {
+            let ptr = sys::pwquality_default_settings();
 
-        if pwq.is_null() {
-            Err(PWQError::new(sys::PWQ_ERROR_MEM_ALLOC))
-        } else {
-            Ok(Self { pwq })
+            ptr.as_ref()
+                .ok_or(PWQError::new(sys::PWQ_ERROR_MEM_ALLOC))
+                .map(|_| Self { pwq: ptr })
         }
     }
 
@@ -185,10 +184,10 @@ impl PWQuality {
     /// Parse the configuration file.
     fn read_optional_config<P: AsRef<Path>>(&self, path: Option<P>) -> Result<&Self> {
         let mut aux_error = null_mut();
-        let c_path = path.map(|p| {
-            let s = p.as_ref().to_string_lossy().to_string();
-            CString::new(s).unwrap()
-        });
+        let c_path = path
+            .map(|p| CString::new(p.as_ref().to_string_lossy().to_string()))
+            .transpose()
+            .unwrap();
 
         let ret = unsafe {
             sys::pwquality_read_config(
@@ -243,10 +242,10 @@ impl PWQuality {
 
         let ret = unsafe { sys::pwquality_get_str_value(self.pwq, setting as c_int, &mut ptr) };
         if ret == 0 {
-            let s = if ptr.is_null() {
-                String::new()
-            } else {
-                unsafe { CStr::from_ptr(ptr).to_string_lossy().to_string() }
+            let s = unsafe {
+                ptr.as_ref()
+                    .map(|p| CStr::from_ptr(p).to_string_lossy().to_string())
+                    .unwrap_or_default()
             };
 
             Ok(s)
@@ -258,21 +257,17 @@ impl PWQuality {
     /// Generate a random password of entropy_bits entropy and check it according to the settings.
     pub fn generate(&self, bits: i32) -> Result<String> {
         let mut ptr: *mut c_char = null_mut();
-        let ret = unsafe { sys::pwquality_generate(self.pwq, bits, &mut ptr) };
+        unsafe {
+            let ret = sys::pwquality_generate(self.pwq, bits, &mut ptr);
 
-        if ptr.is_null() {
-            Err(PWQError::new(ret))
-        } else {
-            let password = unsafe {
-                let str_password = CStr::from_ptr(ptr).to_string_lossy().to_string();
+            ptr.as_ref().ok_or(PWQError::new(ret)).map(|p| {
+                let s = CStr::from_ptr(p).to_string_lossy().to_string();
 
                 // free the memory allocated in the C library
-                libc::free(ptr as *mut c_void);
+                libc::free(ptr.cast());
 
-                str_password
-            };
-
-            Ok(password)
+                s
+            })
         }
     }
 
@@ -286,8 +281,8 @@ impl PWQuality {
         let c_password = CString::new(password).unwrap();
         let mut aux_error = null_mut();
 
-        let c_old_password = old_password.map(|s| CString::new(s).unwrap());
-        let c_user = user.map(|s| CString::new(s).unwrap());
+        let c_old_password = old_password.map(CString::new).transpose().unwrap();
+        let c_user = user.map(CString::new).transpose().unwrap();
 
         let ret = unsafe {
             sys::pwquality_check(
