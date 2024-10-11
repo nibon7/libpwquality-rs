@@ -171,6 +171,25 @@ impl PWQuality {
         }
     }
 
+    #[cfg(any(feature = "vendored", feature = "vendored-cracklib"))]
+    /// Set the default configuration file name.
+    pub fn config_name(&self, cfgname: Option<&str>) -> Result<&Self> {
+        let c_cfgname = cfgname.map(CString::new).transpose().unwrap();
+
+        let ret = unsafe {
+            sys::pwquality_set_config_name(
+                self.pwq,
+                c_cfgname.as_ref().map(|s| s.as_ptr()).unwrap_or(null()),
+            )
+        };
+
+        if ret == 0 {
+            Ok(self)
+        } else {
+            Err(PWQError::new(ret))
+        }
+    }
+
     /// Parse the default configuration file.
     pub fn read_default_config(&self) -> Result<&Self> {
         self.read_optional_config::<&str>(None)
