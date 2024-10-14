@@ -6,7 +6,7 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 mod vendor {
     use super::{Path, Result};
     use cc::Build;
-    use pkg_config::{probe_library, Library};
+    use pkg_config::probe_library;
     use std::{fs::File, process::Command};
 
     fn is_docsrs() -> bool {
@@ -62,18 +62,17 @@ mod vendor {
         Ok(path)
     }
 
-    fn link_zlib(build: &mut Build, zlib: &Library) {
+    fn link_zlib(build: &mut Build) {
+        let Ok(zlib) = probe_library("zlib") else {
+            println!(
+                "cargo::warning=cracklib: zlib not found, disable compressed dictionaries support"
+            );
+            return;
+        };
+
         build
             .define("HAVE_ZLIB_H", None)
             .includes(&zlib.include_paths);
-
-        for lib in &zlib.libs {
-            println!("cargo:rustc-link-lib={lib}");
-        }
-
-        for path in &zlib.link_paths {
-            println!("cargo:rustc-link-search={}", path.display());
-        }
     }
 
     fn build_cracklib(src_dir: impl AsRef<Path>, out_dir: impl AsRef<Path>) -> Result<()> {
@@ -98,9 +97,7 @@ mod vendor {
             .warnings(false)
             .out_dir(&out_dir);
 
-        if let Ok(zlib) = probe_library("zlib") {
-            link_zlib(&mut build, &zlib);
-        }
+        link_zlib(&mut build);
 
         build.try_compile("crack")?;
 
