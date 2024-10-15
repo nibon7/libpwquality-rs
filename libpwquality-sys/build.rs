@@ -132,6 +132,7 @@ mod vendor {
         } else {
             println!("cargo:rerun-if-env-changed=CRACKLIB_INCLUDE_PATH");
             println!("cargo:rerun-if-env-changed=CRACKLIB_LIBRARY_PATH");
+            println!("cargo:rerun-if-env-changed=CRACKLIB_STATIC");
 
             if let Ok(include_path) = std::env::var("CRACKLIB_INCLUDE_PATH") {
                 build.include(include_path);
@@ -141,7 +142,8 @@ mod vendor {
                 println!("cargo:rustc-link-search={library_path}");
             }
 
-            println!("cargo:rustc-link-lib=crack");
+            let link_str = std::env::var("CRACKLIB_STATIC").map_or("", |_| "static=");
+            println!("cargo:rustc-link-lib={link_str}crack");
         }
 
         build.try_compile("pwquality")?;
