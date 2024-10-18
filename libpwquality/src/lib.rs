@@ -81,7 +81,11 @@ define_settings! {
 }
 
 /// `PWQuality` Error.
-pub struct PWQError(String);
+#[derive(Debug)]
+pub struct PWQError {
+    code: i32,
+    message: String,
+}
 
 impl PWQError {
     unsafe fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
@@ -90,9 +94,12 @@ impl PWQError {
                 sys::pwquality_strerror(null_mut(), 0, error_code, aux_error.unwrap_or(null_mut()))
                     .as_ref()
                     .map(|p| CStr::from_ptr(p).to_string_lossy().to_string())
-                    .unwrap_or(format!("Unknown error: errcode={error_code}"));
+                    .unwrap_or("Unknown error".into());
 
-            Self(s)
+            Self {
+                code: error_code,
+                message: s,
+            }
         }
     }
 
@@ -103,15 +110,9 @@ impl PWQError {
 
 impl std::error::Error for PWQError {}
 
-impl std::fmt::Debug for PWQError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PWQError: {}", self.0)
-    }
-}
-
 impl std::fmt::Display for PWQError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{} (error code {})", self.message, self.code)
     }
 }
 
