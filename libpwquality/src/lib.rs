@@ -84,7 +84,7 @@ define_settings! {
 pub struct PWQError(String);
 
 impl PWQError {
-    fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
+    unsafe fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
         unsafe {
             let s =
                 sys::pwquality_strerror(null_mut(), 0, error_code, aux_error.unwrap_or(null_mut()))
@@ -97,7 +97,7 @@ impl PWQError {
     }
 
     fn new(error_code: i32) -> Self {
-        Self::new_aux(error_code, None)
+        unsafe { Self::new_aux(error_code, None) }
     }
 }
 
@@ -219,7 +219,7 @@ impl PWQuality {
         if ret == 0 {
             Ok(self)
         } else {
-            Err(PWQError::new_aux(ret, Some(aux_error)))
+            Err(unsafe { PWQError::new_aux(ret, Some(aux_error)) })
         }
     }
 
@@ -317,7 +317,7 @@ impl PWQuality {
         };
 
         if ret < 0 {
-            Err(PWQError::new_aux(ret, Some(aux_error)))
+            Err(unsafe { PWQError::new_aux(ret, Some(aux_error)) })
         } else {
             Ok(ret)
         }
