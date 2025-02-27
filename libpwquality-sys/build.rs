@@ -219,6 +219,7 @@ fn main() -> Result<()> {
         .allowlist_var("PWQ_.*")
         .allowlist_type("pwquality_.*")
         .allowlist_function("pwquality_.*")
+        .default_macro_constant_type(bindgen::MacroTypeVariation::Signed)
         .header(header_path)
         .generate()?
         .write_to_file(path)?;
