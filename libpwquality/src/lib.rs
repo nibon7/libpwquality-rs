@@ -62,21 +62,21 @@ define_settings! {
     MaxClassRepeat,
     GecosCheck,
     BadWords,
-    #[cfg(any(feature = "v1_2", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_2", feature = "vendored"))]
     MaxSequence,
-    #[cfg(any(feature = "v1_3", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_3", feature = "vendored"))]
     DictCheck,
-    #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4", feature = "vendored"))]
     UserCheck,
-    #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4", feature = "vendored"))]
     Enforcing,
-    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
     RetryTimes,
-    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
     EnforceRoot,
-    #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
     LocalUsers,
-    #[cfg(any(feature = "v1_4_3", feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(any(feature = "v1_4_3", feature = "vendored"))]
     UserSubstr,
 }
 
@@ -172,7 +172,7 @@ impl PWQuality {
         }
     }
 
-    #[cfg(any(feature = "vendored", feature = "vendored-cracklib"))]
+    #[cfg(feature = "vendored")]
     /// Set the default configuration file name.
     pub fn config_name(&self, cfgname: Option<&str>) -> Result<&Self> {
         let c_cfgname = cfgname.map(CString::new).transpose().unwrap();
@@ -380,7 +380,7 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " the maximum length of monotonic character sequences in the new password."]
-        #[cfg(any(feature = "v1_2", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_2", feature = "vendored"))]
         max_sequence,
         MaxSequence
     }
@@ -394,7 +394,7 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " whether to perform the dictionary check."]
-        #[cfg(any(feature = "v1_3", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_3", feature = "vendored"))]
         dict_check,
         DictCheck,
         bool
@@ -402,7 +402,7 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " whether to perform the user name check."]
-        #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_4", feature = "vendored"))]
         user_check,
         UserCheck,
         bool
@@ -410,7 +410,7 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " whether the check is enforced."]
-        #[cfg(any(feature = "v1_4", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_4", feature = "vendored"))]
         enforcing,
         Enforcing,
         bool
@@ -418,14 +418,14 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " maximum retries for the password change should be allowed."]
-        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
         retry_times,
         RetryTimes
     }
 
     define_getseters! {
         #[doc = " whether the check is enforced for root."]
-        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
         enforce_for_root,
         EnforceRoot,
         bool
@@ -433,27 +433,19 @@ impl PWQuality {
 
     define_getseters! {
         #[doc = " whether to check local users only."]
-        #[cfg(any(feature = "v1_4_1", feature = "vendored", feature = "vendored-cracklib"))]
+        #[cfg(any(feature = "v1_4_1", feature = "vendored"))]
         local_users_only,
         LocalUsers,
         bool
     }
 
-    #[cfg(any(
-        feature = "v1_4_5",
-        feature = "vendored",
-        feature = "vendored-cracklib"
-    ))]
+    #[cfg(any(feature = "v1_4_5", feature = "vendored"))]
     /// Get the length of substrings of the user name to check.
     pub fn get_user_substr(&self) -> i32 {
         self.get_int_value(crate::Setting::UserSubstr)
     }
 
-    #[cfg(any(
-        feature = "v1_4_3",
-        feature = "vendored",
-        feature = "vendored-cracklib"
-    ))]
+    #[cfg(any(feature = "v1_4_3", feature = "vendored"))]
     /// Set the length of substrings of the user name to check.
     pub fn user_substr(&self, value: i32) -> &Self {
         self.set_int_value(crate::Setting::UserSubstr, value)
