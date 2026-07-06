@@ -89,17 +89,17 @@ pub struct PWQError {
 
 impl PWQError {
     unsafe fn new_aux(error_code: i32, aux_error: Option<*mut c_void>) -> Self {
-        unsafe {
-            let s =
-                sys::pwquality_strerror(null_mut(), 0, error_code, aux_error.unwrap_or(null_mut()))
-                    .as_ref()
-                    .map(|p| CStr::from_ptr(p).to_string_lossy().to_string())
-                    .unwrap_or("Unknown error".into());
+        let mut buf = [0i8; 256];
+        let ptr =
+            sys::pwquality_strerror(buf.as_mut_ptr(), buf.len(), error_code, aux_error.unwrap_or(null_mut()));
+        let s = ptr
+            .as_ref()
+            .map(|p| CStr::from_ptr(p).to_string_lossy().to_string())
+            .unwrap_or("Unknown error".into());
 
-            Self {
-                code: error_code,
-                message: s,
-            }
+        Self {
+            code: error_code,
+            message: s,
         }
     }
 
