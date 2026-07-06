@@ -280,14 +280,16 @@ impl PWQuality {
         unsafe {
             let ret = sys::pwquality_generate(self.pwq, bits, &mut ptr);
 
-            ptr.as_ref().ok_or(PWQError::new(ret)).map(|p| {
-                let s = CStr::from_ptr(p).to_string_lossy().to_string();
+            if ret < 0 {
+                Err(PWQError::new(ret))
+            } else {
+                let s = CStr::from_ptr(ptr).to_string_lossy().to_string();
 
                 // free the memory allocated in the C library
                 libc::free(ptr.cast());
 
-                s
-            })
+                Ok(s)
+            }
         }
     }
 
