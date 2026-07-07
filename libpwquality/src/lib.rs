@@ -175,7 +175,10 @@ impl PWQuality {
     #[cfg(feature = "vendored")]
     /// Set the default configuration file name.
     pub fn config_name(&self, cfgname: Option<&str>) -> Result<&Self> {
-        let c_cfgname = cfgname.map(CString::new).transpose().unwrap();
+        let c_cfgname = cfgname
+            .map(CString::new)
+            .transpose()
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
 
         let ret = unsafe {
             sys::pwquality_set_config_name(
@@ -207,7 +210,7 @@ impl PWQuality {
         let c_path = path
             .map(|p| CString::new(p.as_ref().to_string_lossy().to_string()))
             .transpose()
-            .unwrap();
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
 
         let ret = unsafe {
             sys::pwquality_read_config(
@@ -245,7 +248,8 @@ impl PWQuality {
 
     /// Set value of a string setting.
     fn set_str_value(&self, setting: Setting, value: &str) -> Result<&Self> {
-        let value = CString::new(value).unwrap();
+        let value = CString::new(value)
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
         let ret =
             unsafe { sys::pwquality_set_str_value(self.pwq, setting as c_int, value.as_ptr()) };
 
@@ -300,11 +304,18 @@ impl PWQuality {
         old_password: Option<&str>,
         user: Option<&str>,
     ) -> Result<i32> {
-        let c_password = CString::new(password).unwrap();
+        let c_password = CString::new(password)
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
         let mut aux_error = null_mut();
 
-        let c_old_password = old_password.map(CString::new).transpose().unwrap();
-        let c_user = user.map(CString::new).transpose().unwrap();
+        let c_old_password = old_password
+            .map(CString::new)
+            .transpose()
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
+        let c_user = user
+            .map(CString::new)
+            .transpose()
+            .map_err(|_| PWQError::new(sys::PWQ_ERROR_FATAL_FAILURE))?;
 
         let ret = unsafe {
             sys::pwquality_check(
